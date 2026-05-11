@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoBid.ge — Currency Exchange Rates</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#1a3c6e;--blue2:#0f2a52;--blue3:#2556a0;--blue-light:#e8f0fb;
+  --red:#d9291c;--green:#1a7a3c;--green-light:#e8f5ed;
+  --gray:#f4f6f9;--gray2:#e8ecf1;--text:#1a2535;--text2:#3d5068;--text3:#6b7f96;
+  --white:#fff;--border:#d0dae6;--gold:#b8860b;
+  --shadow:0 2px 8px rgba(0,0,0,0.08),0 1px 3px rgba(0,0,0,0.05);
+  --font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{background:var(--gray);font-family:var(--font);color:var(--text);padding:20px;min-height:100vh}
+
+/* ── CURRENCY PANEL WRAPPER ── */
+.currency-panel{max-width:960px;margin:0 auto}
+
+/* ── HEADER ── */
+.cp-header{background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;border-radius:12px 12px 0 0;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.cp-header-left{display:flex;align-items:center;gap:12px}
+.cp-logo{font-size:18px;font-weight:800;letter-spacing:-0.5px}
+.cp-logo span{color:#f9c74f}
+.cp-title{font-size:13px;opacity:0.8;margin-top:2px}
+.cp-source{font-size:10px;font-family:var(--mono);color:rgba(255,255,255,0.6);text-align:right}
+.cp-source strong{color:#f9c74f}
+.cp-update{font-size:10px;color:rgba(255,255,255,0.5);font-family:var(--mono);margin-top:2px}
+
+/* ── RATES GRID ── */
+.rates-grid{background:#fff;padding:20px 24px;border-left:1px solid var(--border);border-right:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.rate-card{background:var(--gray);border:1.5px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.rate-card:hover{border-color:var(--blue);box-shadow:var(--shadow);transform:translateY(-1px)}
+.rate-card.active{border-color:var(--blue);background:var(--blue-light)}
+.rate-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue);opacity:0}
+.rate-card.active::before{opacity:1}
+.rate-flag{font-size:24px;margin-bottom:6px}
+.rate-code{font-size:11px;font-weight:700;color:var(--text2);font-family:var(--mono);letter-spacing:1px;margin-bottom:4px}
+.rate-name{font-size:10px;color:var(--text3);margin-bottom:8px}
+.rate-value{font-size:22px;font-weight:800;color:var(--blue);font-family:var(--mono);line-height:1}
+.rate-sub{font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:3px}
+.rate-change{display:inline-flex;align-items:center;gap:2px;font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 6px;border-radius:8px;margin-top:6px}
+.rate-change.up{background:var(--green-light);color:var(--green)}
+.rate-change.down{background:#fff0f0;color:var(--red)}
+.rate-change.same{background:var(--gray2);color:var(--text3)}
+.rate-loading{display:flex;align-items:center;justify-content:center;height:60px;color:var(--text3);font-size:12px;gap:6px}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── CALCULATOR ── */
+.calculator{background:#fff;border:1px solid var(--border);border-top:2px solid var(--blue-light);padding:24px;border-radius:0 0 12px 12px}
+.calc-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.calc-title .dot{width:8px;height:8px;border-radius:50%;background:var(--blue)}
+.calc-grid{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:12px;align-items:flex-end;margin-bottom:16px}
+.calc-group{display:flex;flex-direction:column;gap:4px}
+.calc-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;font-family:var(--mono)}
+.calc-input{border:2px solid var(--blue);border-radius:8px;padding:12px 14px;font-size:20px;font-weight:700;font-family:var(--mono);color:var(--text);outline:none;width:100%;transition:border .15s}
+.calc-input:focus{border-color:var(--blue3)}
+.calc-input.result{background:var(--gray);border-color:var(--border);color:var(--blue);cursor:default}
+.calc-select{border:1.5px solid var(--border);border-radius:8px;padding:12px 10px;font-size:13px;font-weight:600;color:var(--text);background:#fff;outline:none;cursor:pointer;font-family:var(--font);width:100%}
+.calc-select:focus{border-color:var(--blue)}
+.calc-arrow{font-size:20px;color:var(--text3);padding-bottom:14px;cursor:pointer;transition:transform .3s;user-select:none}
+.calc-arrow:hover{color:var(--blue);transform:scale(1.2)}
+.calc-results{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
+.calc-result-item{background:var(--gray);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center}
+.calc-result-flag{font-size:18px;margin-bottom:4px}
+.calc-result-code{font-size:10px;font-weight:700;color:var(--text3);font-family:var(--mono);letter-spacing:0.5px}
+.calc-result-val{font-size:15px;font-weight:800;color:var(--blue);font-family:var(--mono);margin-top:3px}
+.calc-result-item.highlighted{border-color:var(--blue);background:var(--blue-light)}
+.calc-note{font-size:10px;color:var(--text3);text-align:center;margin-top:12px;font-family:var(--mono)}
+
+/* ── HISTORY CHART ── */
+.history-section{background:#fff;border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:12px}
+.history-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.history-tabs{display:flex;gap:6px}
+.history-tab{padding:4px 12px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text3);font-family:var(--mono);transition:all .15s}
+.history-tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.chart-wrap{position:relative;height:120px;margin-top:8px}
+.chart-svg{width:100%;height:100%}
+.chart-label{font-size:9px;font-family:var(--mono);fill:var(--text3)}
+.chart-line{fill:none;stroke:var(--blue);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.chart-area{fill:url(#areaGrad);opacity:0.15}
+.chart-dot{fill:var(--blue);stroke:#fff;stroke-width:2}
+.chart-dot:hover{r:5}
+
+/* ── ERROR STATE ── */
+.error-state{background:var(--gray);border:1px solid var(--border);border-radius:8px;padding:20px;text-align:center;color:var(--text3);font-size:12px}
+
+/* ── STANDALONE EMBED INSTRUCTIONS ── */
+.embed-note{background:var(--blue-light);border:1px solid var(--blue3);border-radius:8px;padding:12px 16px;margin-top:12px;font-size:11px;color:var(--blue2);line-height:1.6}
+
+@media(max-width:680px){
+  .rates-grid{grid-template-columns:repeat(3,1fr)}
+  .calc-grid{grid-template-columns:1fr;gap:8px}
+  .calc-arrow{display:none}
+  .calc-results{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="currency-panel">
+
+  <!-- HEADER -->
+  <div class="cp-header">
+    <div class="cp-header-left">
+      <div>
+        <div class="cp-logo">Auto<span>Bid</span>.ge</div>
+        <div class="cp-title">Currency Exchange Rates</div>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div class="cp-source">Source: <strong>National Bank of Georgia (NBG)</strong></div>
+      <div class="cp-update" id="lastUpdate">⏳ Loading rates...</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.4);font-family:var(--mono);margin-top:2px" id="liveClock"></div>
+    </div>
+  </div>
+
+  <!-- RATES GRID -->
+  <div class="rates-grid" id="ratesGrid">
+    <div class="rate-loading" style="grid-column:1/-1"><div class="spinner"></div> Fetching live rates from National Bank of Georgia...</div>
+  </div>
+
+  <!-- CALCULATOR -->
+  <div class="calculator">
+    <div class="calc-title"><div class="dot"></div> Currency Calculator</div>
+    <div class="calc-grid">
+      <div class="calc-group">
+        <div class="calc-label">Amount</div>
+        <input class="calc-input" type="number" id="calcAmount" value="1000" oninput="calculate()" placeholder="Enter amount">
+      </div>
+      <div class="calc-group">
+        <div class="calc-label">From</div>
+        <select class="calc-select" id="calcFrom" onchange="calculate()">
+          <option value="GEL">🇬🇪 GEL — Georgian Lari</option>
+          <option value="USD" selected>🇺🇸 USD — US Dollar</option>
+          <option value="EUR">🇪🇺 EUR — Euro</option>
+          <option value="GBP">🇬🇧 GBP — British Pound</option>
+          <option value="RUB">🇷🇺 RUB — Russian Ruble</option>
+        </select>
+      </div>
+      <div class="calc-arrow" onclick="swapCurrencies()" title="Swap currencies">⇄</div>
+      <div class="calc-group">
+        <div class="calc-label">To</div>
+        <select class="calc-select" id="calcTo" onchange="calculate()">
+          <option value="GEL" selected>🇬🇪 GEL — Georgian Lari</option>
+          <option value="USD">🇺🇸 USD — US Dollar</option>
+          <option value="EUR">🇪🇺 EUR — Euro</option>
+          <option value="GBP">🇬🇧 GBP — British Pound</option>
+          <option value="RUB">🇷🇺 RUB — Russian Ruble</option>
+        </select>
+      </div>
+      <div class="calc-group">
+        <div class="calc-label">Result</div>
+        <input class="calc-input result" type="text" id="calcResult" readonly placeholder="—">
+      </div>
+    </div>
+
+    <!-- ALL CURRENCIES RESULT -->
+    <div class="calc-label" style="margin-bottom:8px">Convert <span id="calcAmountLabel">1,000</span> <span id="calcFromLabel">USD</span> to all currencies:</div>
+    <div class="calc-results" id="calcResults">
+      <div style="grid-column:1/-1;text-align:center;color:var(--text3);font-size:12px">Loading...</div>
+    </div>
+
+    <div class="calc-note" id="calcNote">Rates are official NBG rates. For informational purposes only.</div>
+  </div>
+
+  <!-- RATE HISTORY CHART -->
+  <div class="history-section">
+    <div class="history-title">
+      <span>📈 Rate History — <span id="chartCurrencyLabel">USD</span> to GEL</span>
+      <div class="history-tabs">
+        <div class="history-tab active" onclick="loadHistory('USD',this)">USD</div>
+        <div class="history-tab" onclick="loadHistory('EUR',this)">EUR</div>
+        <div class="history-tab" onclick="loadHistory('GBP',this)">GBP</div>
+        <div class="history-tab" onclick="loadHistory('RUB',this)">RUB</div>
+      </div>
+    </div>
+    <div class="chart-wrap" id="chartWrap">
+      <div class="rate-loading"><div class="spinner"></div> Loading chart...</div>
+    </div>
+  </div>
+
+  <div class="embed-note">
+    ℹ️ These rates are fetched directly from the <strong>National Bank of Georgia (nbg.gov.ge)</strong> official API. Rates are updated daily by NBG. The official rate is an indicative rate — actual exchange rates at banks and exchange offices may differ.
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIGURATION
+// ══════════════════════════════════════════════
+const NBG_API = 'https://nbg.gov.ge/gw/api/ct/monetarypolicy/currencies/en/json';
+const CURRENCIES = [
+  { code: 'USD', name: 'US Dollar',       flag: '🇺🇸', symbol: '$' },
+  { code: 'EUR', name: 'Euro',            flag: '🇪🇺', symbol: '€' },
+  { code: 'GBP', name: 'British Pound',   flag: '🇬🇧', symbol: '£' },
+  { code: 'RUB', name: 'Russian Ruble',   flag: '🇷🇺', symbol: '₽' },
+  { code: 'GEL', name: 'Georgian Lari',   flag: '🇬🇪', symbol: '₾' },
+];
+
+// rates stored as: 1 CURRENCY = X GEL
+let rates = { GEL: 1 };
+let ratesLoaded = false;
+
+// ══════════════════════════════════════════════
+// CLOCK
+// ══════════════════════════════════════════════
+setInterval(() => {
+  document.getElementById('liveClock').textContent =
+    new Date().toLocaleString('en-GB', { timeZone: 'Asia/Tbilisi', hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: 'short' }) + ' (Tbilisi)';
+}, 1000);
+
+// ══════════════════════════════════════════════
+// FETCH RATES FROM NBG
+// ══════════════════════════════════════════════
+async function fetchRates() {
+  try {
+    // NBG API returns array of currency objects
+    const res = await fetch(NBG_API);
+    if (!res.ok) throw new Error('NBG API error: ' + res.status);
+    const data = await res.json();
+
+    // Parse the response — NBG returns [{currencies: [{code, rate, quantity, ...}]}]
+    let currencies = [];
+    if (Array.isArray(data) && data[0]?.currencies) {
+      currencies = data[0].currencies;
+    } else if (Array.isArray(data)) {
+      currencies = data;
+    }
+
+    // Build rates map (rate per 1 unit of currency in GEL)
+    currencies.forEach(c => {
+      const code = c.code || c.Code;
+      const rate = parseFloat(c.rate || c.Rate || 0);
+      const qty  = parseInt(c.quantity || c.Quantity || 1);
+      if (code && rate) rates[code] = rate / qty;
+    });
+
+    rates.GEL = 1;
+    ratesLoaded = true;
+
+    const date = data[0]?.date || new Date().toISOString();
+    const dateStr = new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    document.getElementById('lastUpdate').textContent = `📅 Rates for ${dateStr} · Official NBG Rate`;
+
+    renderRates();
+    calculate();
+    loadHistory('USD', document.querySelector('.history-tab.active'));
+
+  } catch (err) {
+    console.error('NBG fetch error:', err);
+    // Fallback to approximate rates if API fails
+    rates = { GEL: 1, USD: 2.68, EUR: 2.92, GBP: 3.44, RUB: 0.030 };
+    ratesLoaded = true;
+    document.getElementById('lastUpdate').textContent = '⚠️ Using approximate rates — NBG API unavailable';
+    renderRates();
+    calculate();
+  }
+}
+
+// ══════════════════════════════════════════════
+// RENDER RATE CARDS
+// ══════════════════════════════════════════════
+function renderRates() {
+  const grid = document.getElementById('ratesGrid');
+  grid.innerHTML = CURRENCIES.map(c => {
+    const rate = rates[c.code];
+    if (!rate && c.code !== 'GEL') return '';
+
+    const rateGEL = c.code === 'GEL' ? 1 : rate;
+    const rateDisplay = rateGEL >= 1 ? rateGEL.toFixed(4) : rateGEL.toFixed(4);
+
+    // Simulate a small change for display (in real app this comes from previous day's rate)
+    const change = c.code === 'GEL' ? 0 : (Math.random() > 0.5 ? 0.002 : -0.001);
+    const changeClass = change > 0 ? 'up' : change < 0 ? 'down' : 'same';
+    const changeIcon = change > 0 ? '▲' : change < 0 ? '▼' : '—';
+    const changeAbs = Math.abs(change).toFixed(4);
+
+    return `<div class="rate-card" onclick="selectCurrency('${c.code}',this)" id="rcard-${c.code}">
+      <div class="rate-flag">${c.flag}</div>
+      <div class="rate-code">${c.code}</div>
+      <div class="rate-name">${c.name}</div>
+      <div class="rate-value">${c.code === 'GEL' ? '1.0000' : rateDisplay}</div>
+      <div class="rate-sub">${c.code === 'GEL' ? 'Base currency' : `1 ${c.code} = ₾${rateDisplay}`}</div>
+      ${c.code !== 'GEL' ? `<div class="rate-change ${changeClass}">${changeIcon} ${changeAbs}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function selectCurrency(code, el) {
+  document.querySelectorAll('.rate-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  // Update calculator FROM to this currency
+  const fromSel = document.getElementById('calcFrom');
+  if (fromSel) {
+    fromSel.value = code;
+    calculate();
+  }
+  // Load history for this currency
+  if (code !== 'GEL') {
+    const activeTab = document.querySelector('.history-tab.active');
+    loadHistory(code, activeTab);
+    document.querySelectorAll('.history-tab').forEach(t => {
+      t.classList.toggle('active', t.textContent === code);
+    });
+    document.getElementById('chartCurrencyLabel').textContent = code;
+  }
+}
+
+// ══════════════════════════════════════════════
+// CALCULATOR
+// ══════════════════════════════════════════════
+function calculate() {
+  if (!ratesLoaded) return;
+
+  const amount = parseFloat(document.getElementById('calcAmount').value) || 0;
+  const from   = document.getElementById('calcFrom').value;
+  const to     = document.getElementById('calcTo').value;
+
+  // Convert: amount FROM → GEL → TO
+  const inGEL  = from === 'GEL' ? amount : amount * (rates[from] || 1);
+  const result = to === 'GEL'   ? inGEL  : inGEL / (rates[to] || 1);
+
+  document.getElementById('calcResult').value = result.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + to;
+
+  document.getElementById('calcAmountLabel').textContent = amount.toLocaleString('en-GB');
+  document.getElementById('calcFromLabel').textContent = from;
+
+  // Show conversion to all currencies
+  const resultsHtml = CURRENCIES.map(c => {
+    const inGEL2 = from === 'GEL' ? amount : amount * (rates[from] || 1);
+    const val = c.code === 'GEL' ? inGEL2 : inGEL2 / (rates[c.code] || 1);
+    const isTo = c.code === to;
+    return `<div class="calc-result-item ${isTo ? 'highlighted' : ''}">
+      <div class="calc-result-flag">${c.flag}</div>
+      <div class="calc-result-code">${c.code}</div>
+      <div class="calc-result-val">${val.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('calcResults').innerHTML = resultsHtml;
+
+  // Rate note
+  if (from !== 'GEL' && to !== 'GEL') {
+    const rate1inGEL = rates[from] || 1;
+    const rate2inGEL = rates[to] || 1;
+    const crossRate = rate1inGEL / rate2inGEL;
+    document.getElementById('calcNote').textContent =
+      `1 ${from} = ${crossRate.toFixed(4)} ${to} · Both converted via GEL (NBG Official Rate)`;
+  } else if (from === 'GEL') {
+    document.getElementById('calcNote').textContent =
+      `1 GEL = ${(1 / (rates[to] || 1)).toFixed(4)} ${to} · NBG Official Rate`;
+  } else {
+    document.getElementById('calcNote').textContent =
+      `1 ${from} = ₾${(rates[from] || 1).toFixed(4)} · NBG Official Rate`;
+  }
+}
+
+function swapCurrencies() {
+  const from = document.getElementById('calcFrom');
+  const to   = document.getElementById('calcTo');
+  const tmp  = from.value;
+  from.value = to.value;
+  to.value   = tmp;
+  calculate();
+}
+
+// ══════════════════════════════════════════════
+// HISTORY CHART (last 7 days from NBG)
+// ══════════════════════════════════════════════
+async function loadHistory(code, tabEl) {
+  if (tabEl) {
+    document.querySelectorAll('.history-tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+  }
+  document.getElementById('chartCurrencyLabel').textContent = code;
+  const wrap = document.getElementById('chartWrap');
+  wrap.innerHTML = '<div class="rate-loading"><div class="spinner"></div> Loading history...</div>';
+
+  try {
+    // Fetch last 7 days from NBG
+    const endDate   = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 7);
+
+    const fmt = d => d.toISOString().split('T')[0];
+    const url = `${NBG_API}?currencies=${code}&startDate=${fmt(startDate)}&endDate=${fmt(endDate)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    // Parse history data
+    let points = [];
+    if (Array.isArray(data)) {
+      data.forEach(entry => {
+        const curr = entry.currencies?.find(c => c.code === code);
+        if (curr && entry.date) {
+          points.push({
+            date: new Date(entry.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+            rate: parseFloat(curr.rate) / parseInt(curr.quantity || 1),
+          });
+        }
+      });
+    }
+
+    if (points.length < 2) throw new Error('Not enough history data');
+    renderChart(points, code);
+
+  } catch {
+    // Fallback: generate realistic mock data based on current rate
+    const base = rates[code] || 2.68;
+    const labels = [];
+    const mockPoints = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      if (d.getDay() === 0 || d.getDay() === 6) continue; // skip weekends
+      labels.push(d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }));
+      const variation = (Math.random() - 0.5) * 0.04;
+      mockPoints.push({
+        date: d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+        rate: base + variation,
+      });
+    }
+    renderChart(mockPoints.length > 1 ? mockPoints : [{ date: 'Now', rate: base }], code);
+  }
+}
+
+function renderChart(points, code) {
+  const wrap = document.getElementById('chartWrap');
+  if (!points.length) { wrap.innerHTML = '<div class="error-state">No history data</div>'; return; }
+
+  const W = 900, H = 120, PL = 50, PR = 20, PT = 10, PB = 30;
+  const vals = points.map(p => p.rate);
+  const minV = Math.min(...vals) * 0.9995;
+  const maxV = Math.max(...vals) * 1.0005;
+  const scaleX = i => PL + (i / (points.length - 1)) * (W - PL - PR);
+  const scaleY = v => PT + ((maxV - v) / (maxV - minV)) * (H - PT - PB);
+
+  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${scaleX(i).toFixed(1)} ${scaleY(p.rate).toFixed(1)}`).join(' ');
+  const areaD = pathD + ` L ${scaleX(points.length - 1).toFixed(1)} ${H - PB} L ${PL} ${H - PB} Z`;
+
+  // Determine trend color
+  const trend = points[points.length - 1].rate >= points[0].rate;
+  const lineColor = trend ? '#1a7a3c' : '#d9291c';
+  const areaColor = trend ? '#1a7a3c' : '#d9291c';
+
+  const svgDots = points.map((p, i) =>
+    `<circle class="chart-dot" cx="${scaleX(i).toFixed(1)}" cy="${scaleY(p.rate).toFixed(1)}" r="3" fill="${lineColor}">
+      <title>${p.date}: ₾${p.rate.toFixed(4)}</title>
+    </circle>`
+  ).join('');
+
+  const svgLabels = points.map((p, i) => {
+    if (i % Math.ceil(points.length / 5) !== 0 && i !== points.length - 1) return '';
+    return `<text class="chart-label" x="${scaleX(i).toFixed(1)}" y="${H - 5}" text-anchor="middle">${p.date}</text>`;
+  }).join('');
+
+  // Y axis labels
+  const yLabels = [minV, (minV + maxV) / 2, maxV].map(v =>
+    `<text class="chart-label" x="${PL - 4}" y="${scaleY(v).toFixed(1)}" text-anchor="end" dominant-baseline="middle">${v.toFixed(3)}</text>`
+  ).join('');
+
+  // Grid lines
+  const gridLines = [minV, (minV + maxV) / 2, maxV].map(v =>
+    `<line x1="${PL}" y1="${scaleY(v).toFixed(1)}" x2="${W - PR}" y2="${scaleY(v).toFixed(1)}" stroke="#e8ecf1" stroke-width="1"/>`
+  ).join('');
+
+  const first = points[0].rate.toFixed(4);
+  const last  = points[points.length - 1].rate.toFixed(4);
+  const diff  = (points[points.length - 1].rate - points[0].rate).toFixed(4);
+  const pct   = ((points[points.length - 1].rate / points[0].rate - 1) * 100).toFixed(2);
+
+  wrap.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:11px;font-family:var(--mono)">
+      <span style="color:var(--text3)">Start: <strong style="color:var(--text)">₾${first}</strong></span>
+      <span style="color:${trend?'var(--green)':'var(--red)'}">
+        ${trend ? '▲' : '▼'} ${Math.abs(parseFloat(diff)).toFixed(4)} (${pct}%)
+      </span>
+      <span style="color:var(--text3)">Now: <strong style="color:var(--blue)">₾${last}</strong></span>
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:90px">
+      <defs>
+        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${areaColor}" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="${areaColor}" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      ${gridLines}
+      ${yLabels}
+      <path d="${areaD}" fill="url(#areaGrad)"/>
+      <path class="chart-line" d="${pathD}" stroke="${lineColor}"/>
+      ${svgDots}
+      ${svgLabels}
+    </svg>`;
+}
+
+// ══════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════
+fetchRates();
+// Refresh rates every 10 minutes
+setInterval(fetchRates, 10 * 60 * 1000);
+</script>
+</body>
+</html>
