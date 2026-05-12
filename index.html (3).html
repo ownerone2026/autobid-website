@@ -1,0 +1,2161 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoBid.ge — Online Car Auction Georgia</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#1a3c6e;--blue2:#0f2a52;--blue3:#2556a0;--blue-light:#e8f0fb;--blue-mid:#d0e2f8;
+  --red:#d9291c;--red-light:#fef0ee;
+  --green:#1a7a3c;--green-light:#e8f5ed;
+  --gold:#b8860b;--gold-light:#fdf8e8;
+  --orange:#e8720c;
+  --gray:#f4f6f9;--gray2:#e8ecf1;--gray3:#c8d0db;
+  --text:#1a2535;--text2:#3d5068;--text3:#6b7f96;
+  --white:#ffffff;--border:#d0dae6;
+  --shadow:0 1px 4px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.05);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+  --font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
+  --api:https://autobid-back-production.up.railway.app/api/v1;
+}
+body{background:#f0f3f8;color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh}
+button{cursor:pointer;font-family:var(--font)}
+input,select,textarea{font-family:var(--font)}
+.hidden{display:none!important}
+.page{display:none}.page.active{display:block}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--blue2);color:rgba(255,255,255,0.7);font-size:11px;padding:5px 20px;display:flex;justify-content:space-between;font-family:var(--mono)}
+.topbar span{color:#aac4e8}
+
+/* ── HEADER ── */
+header{background:#fff;border-bottom:2px solid var(--blue);position:sticky;top:0;z-index:900;box-shadow:var(--shadow)}
+.header-inner{display:flex;align-items:center;gap:16px;padding:10px 20px}
+.logo{display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0}
+.logo-box{width:40px;height:40px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;letter-spacing:-1px}
+.logo-text{font-size:20px;font-weight:800;color:var(--blue);letter-spacing:-0.5px}
+.logo-text span{color:var(--red)}
+.logo-sub{font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:1px;display:block}
+.search-bar{flex:1;display:flex;max-width:560px}
+.search-bar input{flex:1;border:2px solid var(--blue);border-right:none;border-radius:6px 0 0 6px;padding:9px 14px;font-size:13px;outline:none}
+.search-bar button{background:var(--blue);color:#fff;border:none;padding:9px 18px;border-radius:0 6px 6px 0;font-weight:600;font-size:13px;transition:background .15s}
+.search-bar button:hover{background:var(--blue3)}
+.header-actions{display:flex;gap:8px;align-items:center;margin-left:auto}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;border:none;border-radius:6px;font-family:var(--font);font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;text-decoration:none}
+.btn-xs{padding:4px 10px;font-size:11px}
+.btn-sm{padding:7px 14px;font-size:12px}
+.btn-md{padding:9px 18px;font-size:13px}
+.btn-lg{padding:12px 24px;font-size:14px;font-weight:600}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue3)}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#b82015}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#145e2d}
+.btn-outline{background:#fff;border:1.5px solid var(--blue);color:var(--blue)}.btn-outline:hover{background:var(--blue-light)}
+.btn-gray{background:#fff;border:1.5px solid var(--border);color:var(--text2)}.btn-gray:hover{border-color:var(--blue);color:var(--blue)}
+.btn-ghost{background:transparent;color:var(--text2)}.btn-ghost:hover{background:var(--gray);color:var(--blue)}
+.btn-gold{background:var(--gold);color:#fff}.btn-gold:hover{background:#9a7009}
+
+/* ── NAVBAR ── */
+.navbar{background:var(--blue);padding:0 20px;display:flex;align-items:center;overflow-x:auto}
+.nav-item{padding:10px 16px;font-size:12px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:rgba(255,255,255,0.8);white-space:nowrap;transition:all .15s}
+.nav-item:hover{background:rgba(255,255,255,0.1);color:#fff}
+.nav-item.active{border-bottom-color:#fff;color:#fff}
+.nav-badge{background:var(--red);color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px;font-family:var(--mono)}
+
+/* ── HERO ── */
+.hero{background:linear-gradient(135deg,var(--blue2),var(--blue) 60%,#1e4f9a);color:#fff;padding:40px 20px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;right:-60px;top:-60px;width:320px;height:320px;background:rgba(255,255,255,0.04);border-radius:50%}
+.hero-inner{max-width:780px;position:relative;z-index:1}
+.hero h1{font-size:clamp(24px,4vw,36px);font-weight:800;letter-spacing:-0.5px;margin-bottom:8px}
+.hero h1 span{color:#f9c74f}
+.hero p{font-size:14px;color:rgba(255,255,255,0.8);margin-bottom:16px;line-height:1.6;max-width:500px}
+.fee-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.fee-pill{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:5px 14px;font-size:12px}
+.fee-pill strong{color:#f9c74f}
+.hero-stats{display:flex;gap:28px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.15);flex-wrap:wrap}
+.hstat-num{font-size:22px;font-weight:800;color:#f9c74f;font-family:var(--mono)}
+.hstat-label{font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase}
+
+/* ── SEARCH PANEL ── */
+.search-panel{background:#fff;border-bottom:1px solid var(--border);padding:14px 20px}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px}
+.fg select,.fg input{border:1.5px solid var(--border);border-radius:5px;padding:7px 10px;font-size:12px;color:var(--text);background:#fff;outline:none;min-width:110px}
+.fg select:focus,.fg input:focus{border-color:var(--blue)}
+.active-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.atag{background:var(--blue-light);border:1px solid var(--blue3);color:var(--blue);font-size:11px;padding:3px 10px;border-radius:12px;display:inline-flex;align-items:center;gap:5px}
+.atag button{background:none;border:none;color:var(--blue3);font-size:13px;cursor:pointer;line-height:1}
+
+/* ── LAYOUT ── */
+.main-layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 220px)}
+.sidebar{background:#fff;border-right:1px solid var(--border)}
+.sb-section{border-bottom:1px solid var(--border)}
+.sb-header{padding:11px 16px;font-weight:600;font-size:11px;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;display:flex;justify-content:space-between;background:#fff}
+.sb-header:hover{background:var(--gray)}
+.sb-body{padding:10px 16px}
+.sb-check{display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;font-size:12px;color:var(--text2)}
+.sb-check:hover{color:var(--blue)}
+.sb-check input{accent-color:var(--blue);width:14px;height:14px}
+.sb-count{margin-left:auto;background:var(--gray2);color:var(--text3);font-size:10px;padding:1px 6px;border-radius:8px;font-family:var(--mono)}
+
+/* ── RESULTS ── */
+.results-bar{background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.results-count{font-size:13px;font-weight:600;color:var(--text)}
+.results-count span{color:var(--blue)}
+.view-btns{display:flex;border:1.5px solid var(--border);border-radius:5px;overflow:hidden}
+.view-btn{background:#fff;border:none;padding:5px 10px;color:var(--text3);font-size:14px;cursor:pointer;transition:all .15s}
+.view-btn.active{background:var(--blue);color:#fff}
+
+/* ── CAR CARDS ── */
+.cars-area{padding:14px}
+.car-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.car-list{display:flex;flex-direction:column;gap:10px}
+.car-card{background:#fff;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .2s}
+.car-card:hover{border-color:var(--blue);box-shadow:var(--shadow);transform:translateY(-1px)}
+.car-img{width:100%;height:155px;background:linear-gradient(135deg,#e8ecf2,#d0dae6);display:flex;align-items:center;justify-content:center;font-size:52px;position:relative}
+.car-ribbon{position:absolute;top:0;left:0;color:#fff;font-size:9px;font-weight:700;padding:3px 10px;letter-spacing:0.5px;font-family:var(--mono)}
+.ribbon-live{background:var(--red)}
+.ribbon-ending{background:var(--orange)}
+.ribbon-upcoming{background:var(--blue)}
+.car-fav{position:absolute;top:8px;right:8px;background:#fff;border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,0.15)}
+.car-body{padding:12px}
+.car-lot{font-size:9px;font-family:var(--mono);color:var(--text3);margin-bottom:2px}
+.car-name{font-size:14px;font-weight:700;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.car-sub{font-size:11px;color:var(--text3);margin-bottom:8px}
+.car-specs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.spec{background:var(--gray);color:var(--text2);font-size:10px;padding:2px 7px;border-radius:10px;font-family:var(--mono)}
+.car-price-row{display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid var(--border);padding-top:8px}
+.plabel{font-size:9px;color:var(--text3);text-transform:uppercase;font-family:var(--mono)}
+.pval{font-size:20px;font-weight:700;color:var(--blue);font-family:var(--mono)}
+.timer{font-size:11px;font-weight:600;color:var(--red);font-family:var(--mono);text-align:right}
+.timer-label{font-size:9px;color:var(--text3);font-family:var(--mono)}
+
+/* LIST VIEW */
+.car-list-item{background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:14px;display:flex;gap:14px;cursor:pointer;transition:all .2s;align-items:center}
+.car-list-item:hover{border-color:var(--blue);box-shadow:var(--shadow)}
+.car-list-img{width:110px;height:76px;background:linear-gradient(135deg,#e8ecf2,#d0dae6);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0}
+.car-list-info{flex:1}
+.car-list-price{text-align:right;flex-shrink:0}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(10,25,50,0.65);z-index:2000;overflow-y:auto;backdrop-filter:blur(3px);padding:20px 16px 40px;justify-content:center;align-items:flex-start}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:860px;overflow:hidden;box-shadow:var(--shadow-lg)}
+.modal-top{background:var(--blue);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
+.modal-top h2{font-size:18px;font-weight:700}
+.modal-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer}
+.modal-body{padding:22px;display:grid;grid-template-columns:1fr 320px;gap:22px}
+.modal-gallery{background:linear-gradient(135deg,#e8ecf2,#d0dae6);border-radius:8px;height:260px;display:flex;align-items:center;justify-content:center;font-size:88px;margin-bottom:12px}
+.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px}
+.spec-cell{background:#fff;padding:9px 12px}
+.spec-cell-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;font-family:var(--mono);margin-bottom:2px}
+.spec-cell-val{font-size:13px;font-weight:600;color:var(--text)}
+.bid-panel{background:var(--gray);border:2px solid var(--blue);border-radius:10px;padding:18px}
+.bid-panel-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin-bottom:10px;font-family:var(--mono)}
+.current-bid-label{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.current-bid-amt{font-size:34px;font-weight:800;color:var(--blue);font-family:var(--mono);line-height:1}
+.bid-count{font-size:11px;color:var(--text3);margin-bottom:10px}
+.timer-box{background:var(--red-light);border:1px solid var(--red);border-radius:6px;padding:10px 12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.timer-box-label{font-size:10px;color:var(--red);font-family:var(--mono)}
+.timer-box-val{font-size:18px;font-weight:700;color:var(--red);font-family:var(--mono)}
+.fee-note{background:#fff3e0;border:1px solid #f5a623;border-radius:6px;padding:10px 12px;font-size:11px;color:#e65100;margin-bottom:12px;line-height:1.5}
+.bid-row{display:flex;gap:8px;margin-bottom:8px}
+.bid-input{flex:1;border:2px solid var(--blue);border-radius:6px;padding:10px 12px;font-size:16px;font-weight:600;font-family:var(--mono);outline:none;color:var(--text)}
+.bid-input:focus{border-color:var(--blue3)}
+.bid-hist-title{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text3);margin:12px 0 8px;font-family:var(--mono)}
+.bid-hist-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px}
+.bid-hist-user{color:var(--text2);font-family:var(--mono)}
+.bid-hist-amt{font-weight:700;color:var(--blue);font-family:var(--mono)}
+.bid-hist-time{color:var(--text3);font-size:10px}
+
+/* ── AUTH MODAL ── */
+.auth-modal{background:#fff;border-radius:12px;width:100%;max-width:460px;overflow:hidden;box-shadow:var(--shadow-lg);margin-top:60px}
+.auth-header{background:var(--blue);padding:20px 24px;color:#fff}
+.auth-header h2{font-size:20px;font-weight:700}
+.auth-header p{font-size:12px;opacity:0.8;margin-top:3px}
+.auth-body{padding:24px}
+.auth-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:18px}
+.auth-tab{flex:1;text-align:center;padding:10px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.auth-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.role-opt{border:2px solid var(--border);border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all .2s}
+.role-opt:hover{border-color:var(--blue);background:var(--blue-light)}
+.role-opt.active{border-color:var(--blue);background:var(--blue-light)}
+.role-icon{font-size:22px;margin-bottom:3px}
+.role-name{font-size:12px;font-weight:700;color:var(--text)}
+.role-desc{font-size:10px;color:var(--text3);margin-top:2px}
+.form-group{margin-bottom:13px}
+.form-label{display:block;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.form-input{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s}
+.form-input:focus{border-color:var(--blue)}
+.form-select{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;background:#fff}
+.info-box{background:var(--blue-light);border:1px solid var(--blue3);border-radius:6px;padding:10px 12px;font-size:11px;color:var(--blue2);margin-bottom:14px;line-height:1.5}
+.form-note{font-size:11px;color:var(--text3);text-align:center;margin-top:10px}
+.form-note a{color:var(--blue);cursor:pointer;font-weight:600}
+.form-error{background:var(--red-light);border:1px solid rgba(217,41,28,0.3);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--red);margin-bottom:12px}
+
+/* ── PROFILE ── */
+.profile-layout{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 120px)}
+.profile-sidebar{background:#fff;border-right:1px solid var(--border)}
+.p-avatar-section{padding:20px;border-bottom:1px solid var(--border);text-align:center}
+.p-avatar{width:60px;height:60px;border-radius:50%;background:var(--blue);color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
+.p-name{font-size:14px;font-weight:700;color:var(--text)}
+.p-role{display:inline-flex;align-items:center;gap:4px;background:var(--blue-light);color:var(--blue);font-size:10px;font-weight:700;padding:3px 10px;border-radius:12px;margin-top:4px;font-family:var(--mono)}
+.p-role.seller{background:#fff3e0;color:var(--orange)}
+.p-nav{display:flex;align-items:center;gap:10px;padding:11px 16px;font-size:13px;color:var(--text2);cursor:pointer;border-left:3px solid transparent;border-bottom:1px solid var(--border);transition:all .15s;background:#fff;border-top:none;border-right:none;width:100%;text-align:left}
+.p-nav:hover{background:var(--gray);color:var(--blue);border-left-color:var(--blue3)}
+.p-nav.active{background:var(--blue-light);color:var(--blue);border-left-color:var(--blue);font-weight:600}
+.p-main{background:var(--gray);padding:18px}
+.pcard{background:#fff;border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:14px}
+.pcard-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px}
+.kpi-val{font-size:26px;font-weight:700;color:var(--blue);font-family:var(--mono)}
+.kpi-val.red{color:var(--red)}.kpi-val.green{color:var(--green)}.kpi-val.orange{color:var(--orange)}
+.kpi-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;font-family:var(--mono)}
+
+/* ── ADMIN ── */
+.admin-layout{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 80px)}
+.admin-sidebar{background:var(--blue2);color:#fff}
+.admin-brand{padding:16px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:10px}
+.admin-brand-icon{width:32px;height:32px;background:var(--red);border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+.admin-brand-text{font-size:13px;font-weight:700}
+.admin-brand-sub{font-size:9px;color:rgba(255,255,255,0.5);font-family:var(--mono)}
+.admin-nav-label{font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.4);padding:10px 16px 4px;font-family:var(--mono)}
+.admin-nav{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:12px;color:rgba(255,255,255,0.75);cursor:pointer;border-left:3px solid transparent;transition:all .15s;background:none;border-top:none;border-right:none;border-bottom:none;width:100%;text-align:left;font-family:var(--font)}
+.admin-nav:hover{background:rgba(255,255,255,0.08);color:#fff}
+.admin-nav.active{background:rgba(255,255,255,0.12);color:#fff;border-left-color:#fff}
+.admin-nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;padding:1px 6px;border-radius:8px;font-family:var(--mono)}
+.admin-main{background:var(--gray);padding:22px;overflow-y:auto}
+.admin-section{display:none}.admin-section.active{display:block}
+.admin-page-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px}
+.admin-page-sub{font-size:12px;color:var(--text3);margin-bottom:20px}
+.admin-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.admin-kpi{background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;border-left:4px solid var(--blue)}
+.admin-kpi.red{border-left-color:var(--red)}.admin-kpi.green{border-left-color:var(--green)}.admin-kpi.orange{border-left-color:var(--orange)}
+.admin-kpi .ak-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;font-family:var(--mono);margin-bottom:5px}
+.admin-kpi .ak-val{font-size:26px;font-weight:700;color:var(--text);font-family:var(--mono)}
+.admin-kpi .ak-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.acard{background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px}
+.acard-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.req-card{background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;transition:border .15s}
+.req-card:hover{border-color:var(--blue)}
+.req-img{width:72px;height:54px;background:linear-gradient(135deg,#e8ecf2,#d0dae6);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.req-info{flex:1}
+.req-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.req-meta{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:3px}
+.req-tag{font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:8px;background:var(--gray2);color:var(--text3);border:1px solid var(--border);display:inline-block;margin-right:4px;margin-bottom:4px}
+.req-tag.paid{background:var(--green-light);color:var(--green);border-color:rgba(26,122,60,0.2)}
+.req-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+
+/* ── TABLES ── */
+.dtable{width:100%;border-collapse:collapse;font-size:12px}
+.dtable th{text-align:left;padding:8px 12px;font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;background:var(--gray);border-bottom:2px solid var(--border);font-family:var(--mono)}
+.dtable td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.dtable tr:hover td{background:#f8fafd}
+.dtable tr:last-child td{border-bottom:none}
+.pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;font-family:var(--mono)}
+.pill-live{background:#fff0f0;color:var(--red);border:1px solid rgba(217,41,28,0.2)}
+.pill-won{background:var(--green-light);color:var(--green);border:1px solid rgba(26,122,60,0.2)}
+.pill-pending{background:var(--gold-light);color:var(--gold);border:1px solid rgba(184,134,11,0.2)}
+.pill-ended{background:var(--gray2);color:var(--text3);border:1px solid var(--border)}
+.pill-approved{background:var(--green-light);color:var(--green);border:1px solid rgba(26,122,60,0.2)}
+.pill-rejected{background:#fff0f0;color:var(--red);border:1px solid rgba(217,41,28,0.2)}
+.pill-buyer{background:var(--blue-light);color:var(--blue);border:1px solid rgba(26,60,110,0.2)}
+.pill-seller{background:#fff3e0;color:var(--orange);border:1px solid rgba(232,114,12,0.2)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;animation:blink 1.2s infinite;margin-right:4px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* ── NOTIF ── */
+.notif-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.notif-item:last-child{border-bottom:none}
+.notif-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.notif-title{font-size:12px;font-weight:600;color:var(--text)}
+.notif-time{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:1px}
+
+/* ── UPLOAD ── */
+.dropzone{border:2px dashed var(--blue3);border-radius:8px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px;background:var(--blue-light)}
+.dropzone:hover{background:var(--blue-mid);border-color:var(--blue)}
+.dropzone-icon{font-size:36px;margin-bottom:6px}
+.dropzone-title{font-size:14px;font-weight:600;color:var(--blue);margin-bottom:3px}
+.dropzone-sub{font-size:11px;color:var(--text3)}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-3col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;right:20px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 18px;font-size:13px;z-index:9999;transform:translateY(60px);opacity:0;transition:all .3s;min-width:260px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:10px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-left:4px solid var(--green)}
+.toast.error{border-left:4px solid var(--red)}
+.toast.info{border-left:4px solid var(--blue)}
+
+/* ── LOADING ── */
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;gap:10px;color:var(--text3);font-size:13px}
+.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:40px;color:var(--text3);font-size:13px}
+
+/* ── AUCTION DETAIL PAGE (Copart style) ── */
+.ad-wrap{max-width:1200px;margin:0 auto;padding:20px}
+.ad-breadcrumb{font-size:12px;color:var(--text3);margin-bottom:12px;font-family:var(--mono)}
+.ad-breadcrumb a{color:var(--blue);cursor:pointer;text-decoration:none}
+.ad-breadcrumb a:hover{text-decoration:underline}
+.ad-header{background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.ad-header-left h1{font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px}
+.ad-header-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.ad-badge{padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono)}
+.ad-badge-live{background:#fff0f0;color:var(--red);border:1px solid rgba(217,41,28,0.3)}
+.ad-badge-lot{background:var(--gray2);color:var(--text2);border:1px solid var(--border)}
+.ad-badge-cleared{background:var(--green-light);color:var(--green);border:1px solid rgba(26,122,60,0.2)}
+.ad-main{display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start}
+.ad-left{}
+.ad-gallery{background:var(--gray2);border-radius:8px;overflow:hidden;margin-bottom:10px;position:relative}
+.ad-gallery-main{width:100%;height:380px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e8ecf2,#d0dae6);font-size:120px;cursor:zoom-in}
+.ad-gallery-main img{width:100%;height:100%;object-fit:cover}
+.ad-thumbs{display:flex;gap:6px;padding:8px;background:#fff;border-top:1px solid var(--border);overflow-x:auto}
+.ad-thumb{width:70px;height:52px;border-radius:4px;object-fit:cover;cursor:pointer;border:2px solid transparent;flex-shrink:0;background:var(--gray2);display:flex;align-items:center;justify-content:center;font-size:20px}
+.ad-thumb.active{border-color:var(--blue)}
+.ad-thumb:hover{border-color:var(--blue3)}
+.ad-info-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:16px;background:#fff;border-radius:8px 8px 0 0;overflow:hidden}
+.ad-info-tab{padding:12px 20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text3);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s}
+.ad-info-tab:hover{color:var(--blue);background:var(--gray)}
+.ad-info-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.ad-specs-grid{display:grid;grid-template-columns:1fr 1fr;background:#fff;border:1px solid var(--border);border-radius:0 0 8px 8px;overflow:hidden}
+.ad-spec{padding:12px 16px;border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
+.ad-spec:nth-child(even){border-right:none}
+.ad-spec-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;font-family:var(--mono);margin-bottom:3px}
+.ad-spec-val{font-size:14px;font-weight:600;color:var(--text)}
+.ad-desc{background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:12px}
+.ad-desc-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px}
+.ad-desc-text{font-size:13px;color:var(--text2);line-height:1.7}
+
+/* ── BID PANEL (right side) ── */
+.ad-right{}
+.ad-bid-panel{background:#fff;border:1px solid var(--border);border-radius:8px;overflow:hidden;position:sticky;top:80px}
+.ad-bid-header{background:var(--blue2);color:#fff;padding:14px 18px}
+.ad-bid-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ad-bid-status{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;font-family:var(--mono)}
+.ad-bid-lot{font-size:10px;opacity:0.6;font-family:var(--mono)}
+.ad-bid-timer-row{background:rgba(255,255,255,0.1);border-radius:6px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
+.ad-bid-timer-label{font-size:10px;color:rgba(255,255,255,0.7);font-family:var(--mono);letter-spacing:0.5px}
+.ad-bid-timer-val{font-size:20px;font-weight:800;color:#f9c74f;font-family:var(--mono)}
+.ad-bid-body{padding:16px 18px}
+.ad-current-bid-section{border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:14px}
+.ad-current-bid-label{font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:4px}
+.ad-current-bid-amount{font-size:42px;font-weight:800;color:var(--blue);font-family:var(--mono);line-height:1}
+.ad-bid-count{font-size:12px;color:var(--text3);margin-top:4px}
+.ad-bid-history-mini{margin-top:8px}
+.ad-bid-hist-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+.ad-bid-hist-row:last-child{border-bottom:none}
+.ad-bid-hist-user{color:var(--text2);font-family:var(--mono)}
+.ad-bid-hist-amt{font-weight:700;color:var(--blue);font-family:var(--mono)}
+.ad-bid-hist-time{color:var(--text3);font-size:11px;font-family:var(--mono)}
+.ad-fee-box{background:#fff8e1;border:1px solid #ffc107;border-radius:6px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#856404;line-height:1.6}
+.ad-fee-box strong{color:#6d4c00}
+.ad-bid-input-section{margin-bottom:12px}
+.ad-bid-input-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;font-family:var(--mono)}
+.ad-bid-input-row{display:flex;gap:0;border:2px solid var(--blue);border-radius:8px;overflow:hidden}
+.ad-bid-currency{background:var(--blue);color:#fff;padding:0 14px;font-size:18px;font-weight:800;display:flex;align-items:center;font-family:var(--mono)}
+.ad-bid-input{flex:1;border:none;padding:12px 14px;font-size:20px;font-weight:700;font-family:var(--mono);color:var(--text);outline:none}
+.ad-bid-btn{width:100%;background:var(--red);color:#fff;border:none;border-radius:8px;padding:16px;font-size:16px;font-weight:800;cursor:pointer;transition:all .2s;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
+.ad-bid-btn:hover{background:#b82015;transform:translateY(-1px);box-shadow:0 4px 12px rgba(217,41,28,0.3)}
+.ad-bid-btn:active{transform:translateY(0)}
+.ad-bid-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+.ad-watch-btn{width:100%;background:#fff;color:var(--blue);border:1.5px solid var(--blue);border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.ad-watch-btn:hover{background:var(--blue-light)}
+.ad-seller-box{background:var(--gray);border-top:1px solid var(--border);padding:12px 18px;font-size:12px;color:var(--text3);display:flex;justify-content:space-between}
+.ad-min-bid-note{font-size:11px;color:var(--text3);text-align:center;margin-bottom:10px;font-family:var(--mono)}
+@media(max-width:900px){.ad-main{grid-template-columns:1fr}.ad-right .ad-bid-panel{position:static}}
+
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div>📍 Tbilisi, Georgia &nbsp;|&nbsp; 🕐 <span id="clock"></span> &nbsp;|&nbsp; 🇬🇪 GEL · USD</div>
+  <div style="display:flex;gap:16px">
+    <span id="apiStatus" style="color:#aac4e8">⏳ Connecting...</span>
+    <span>AutoBid.ge v1.0</span>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo" onclick="showPage('home')">
+      <div class="logo-box">AB</div>
+      <div>
+        <div class="logo-text">Auto<span>Bid</span>.ge</div>
+        <span class="logo-sub">ONLINE CAR AUCTION · GEORGIA</span>
+      </div>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="globalSearch" placeholder="Search make, model, lot number...">
+      <button onclick="doSearch()">🔍 Search</button>
+    </div>
+    <div class="header-actions" id="guestActions">
+      <button class="btn btn-outline btn-sm" onclick="openAuth('login')">Sign In</button>
+      <button class="btn btn-red btn-sm" onclick="openAuth('register')">Register Free</button>
+      <button class="btn btn-gray btn-sm" onclick="openAuth('register');setRole('seller')">📋 List a Car — ₾70</button>
+    </div>
+    <div class="header-actions hidden" id="userActions">
+      <span style="font-size:12px;color:var(--text2);" id="headerName"></span>
+      <button class="btn btn-outline btn-sm" onclick="showProfile()">My Account</button>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+</header>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-item active" onclick="showPage('home');setNav(this)">🏠 Auctions</div>
+  <div class="nav-item" onclick="showPage('home');setNav(this);setFilter('live')">🔴 Live Now</div>
+  <div class="nav-item" onclick="showPage('home');setNav(this);setFilter('ending')">⚡ Ending Soon</div>
+  <div class="nav-item" onclick="showPage('home');setNav(this);setFilter('scheduled')">📅 Upcoming</div>
+  <div class="nav-item" onclick="showPage('howSell');setNav(this)">📋 How to Sell</div>
+</nav>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toastIcon"></span><span id="toastMsg"></span></div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- HOME PAGE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-inner">
+      <h1>Georgia's <span>#1 Online</span> Car Auction</h1>
+      <p>Bid on verified vehicles in real time. Transparent pricing, no hidden fees. Sellers keep 100% of the final price.</p>
+      <div class="fee-pills">
+        <div class="fee-pill">📋 List a car: <strong>₾70</strong></div>
+        <div class="fee-pill">🏆 Win commission: <strong>2%</strong></div>
+        <div class="fee-pill">✅ Seller gets: <strong>100%</strong></div>
+        <div class="fee-pill">🔍 Browse: <strong>Free</strong></div>
+      </div>
+      <div class="hero-stats">
+        <div><div class="hstat-num" id="statLive">—</div><div class="hstat-label">Live Now</div></div>
+        <div><div class="hstat-num" id="statUsers">—</div><div class="hstat-label">Registered Users</div></div>
+        <div><div class="hstat-num">₾70</div><div class="hstat-label">Listing Fee</div></div>
+        <div><div class="hstat-num">2%</div><div class="hstat-label">Buyer Commission</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="search-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px">🔎 Advanced Search Filters</div>
+      <button class="btn btn-gray btn-xs" onclick="clearFilters()">✕ Clear All</button>
+    </div>
+    <!-- ROW 1: Make, Model, Body Type, Year From, Year To -->
+    <div class="filter-row" style="margin-bottom:8px">
+      <div class="fg">
+        <label>Make</label>
+        <select id="fMake" onchange="onMakeChange()">
+          <option value="">All Makes</option>
+          <optgroup label="Japanese">
+            <option>Toyota</option><option>Honda</option><option>Nissan</option>
+            <option>Mazda</option><option>Subaru</option><option>Mitsubishi</option>
+            <option>Lexus</option><option>Infiniti</option><option>Acura</option>
+          </optgroup>
+          <optgroup label="German">
+            <option>BMW</option><option>Mercedes-Benz</option><option>Audi</option>
+            <option>Volkswagen</option><option>Porsche</option><option>Opel</option>
+          </optgroup>
+          <optgroup label="American">
+            <option>Ford</option><option>Chevrolet</option><option>Jeep</option>
+            <option>Dodge</option><option>Cadillac</option><option>Lincoln</option>
+          </optgroup>
+          <optgroup label="Korean">
+            <option>Hyundai</option><option>Kia</option><option>Genesis</option>
+            <option>SsangYong</option>
+          </optgroup>
+          <optgroup label="European">
+            <option>Peugeot</option><option>Renault</option><option>Citroen</option>
+            <option>Fiat</option><option>Volvo</option><option>Land Rover</option>
+            <option>Jaguar</option><option>MINI</option><option>Skoda</option>
+            <option>Seat</option><option>Alfa Romeo</option>
+          </optgroup>
+          <optgroup label="Chinese">
+            <option>Haval</option><option>Chery</option><option>Geely</option>
+            <option>BYD</option><option>JAC</option>
+          </optgroup>
+          <optgroup label="Other">
+            <option>Tesla</option><option>Other</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Model</label>
+        <select id="fModel" onchange="loadAuctions()" disabled style="opacity:0.5">
+          <option value="">Select Make First</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Body Type</label>
+        <select id="fBody" onchange="loadAuctions()">
+          <option value="">All Types</option>
+          <option value="sedan">🚗 Sedan</option>
+          <option value="suv">🚙 SUV / Crossover</option>
+          <option value="hatchback">🚗 Hatchback</option>
+          <option value="minivan">🚐 Minivan / MPV</option>
+          <option value="coupe">🏎️ Coupe</option>
+          <option value="convertible">🚘 Convertible</option>
+          <option value="wagon">🚗 Station Wagon</option>
+          <option value="truck">🛻 Truck / Pickup</option>
+          <option value="van">🚌 Van</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Year From</label>
+        <select id="fYearFrom" onchange="loadAuctions()">
+          <option value="">Any</option>
+          <option>2000</option><option>2002</option><option>2004</option><option>2005</option>
+          <option>2006</option><option>2007</option><option>2008</option><option>2009</option>
+          <option>2010</option><option>2011</option><option>2012</option><option>2013</option>
+          <option>2014</option><option>2015</option><option>2016</option><option>2017</option>
+          <option>2018</option><option>2019</option><option>2020</option><option>2021</option>
+          <option>2022</option><option>2023</option><option>2024</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Year To</label>
+        <select id="fYearTo" onchange="loadAuctions()">
+          <option value="">Any</option>
+          <option>2005</option><option>2008</option><option>2010</option><option>2012</option>
+          <option>2014</option><option>2015</option><option>2016</option><option>2017</option>
+          <option>2018</option><option>2019</option><option>2020</option><option>2021</option>
+          <option>2022</option><option>2023</option><option>2024</option><option>2025</option>
+        </select>
+      </div>
+    </div>
+    <!-- ROW 2: Fuel, Transmission, Engine, Price, Status, Sort -->
+    <div class="filter-row">
+      <div class="fg">
+        <label>Fuel Type</label>
+        <select id="fFuel" onchange="loadAuctions()">
+          <option value="">All Fuels</option>
+          <option value="petrol">⛽ Petrol</option>
+          <option value="diesel">🛢️ Diesel</option>
+          <option value="hybrid">🔋 Hybrid</option>
+          <option value="electric">⚡ Electric</option>
+          <option value="lpg">🟢 LPG / Gas</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Transmission</label>
+        <select id="fTrans" onchange="loadAuctions()">
+          <option value="">All</option>
+          <option value="automatic">Automatic</option>
+          <option value="manual">Manual</option>
+          <option value="cvt">CVT</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Engine Size</label>
+        <select id="fEngine" onchange="loadAuctions()">
+          <option value="">Any Engine</option>
+          <option value="0.8">0.8L</option>
+          <option value="1.0">1.0L</option>
+          <option value="1.2">1.2L</option>
+          <option value="1.4">1.4L</option>
+          <option value="1.5">1.5L</option>
+          <option value="1.6">1.6L</option>
+          <option value="1.8">1.8L</option>
+          <option value="2.0">2.0L</option>
+          <option value="2.2">2.2L</option>
+          <option value="2.4">2.4L</option>
+          <option value="2.5">2.5L</option>
+          <option value="2.7">2.7L</option>
+          <option value="3.0">3.0L</option>
+          <option value="3.5">3.5L</option>
+          <option value="4.0">4.0L</option>
+          <option value="4.5">4.5L</option>
+          <option value="5.0">5.0L+</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Price From (₾)</label>
+        <input type="number" id="fPriceFrom" placeholder="0" oninput="loadAuctions()">
+      </div>
+      <div class="fg">
+        <label>Price To (₾)</label>
+        <input type="number" id="fPriceTo" placeholder="Any" oninput="loadAuctions()">
+      </div>
+      <div class="fg">
+        <label>Status</label>
+        <select id="fStatus" onchange="loadAuctions()">
+          <option value="">All</option>
+          <option value="live">🔴 Live</option>
+          <option value="scheduled">📅 Upcoming</option>
+          <option value="ended">✅ Ended</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Sort by</label>
+        <select id="fSort" onchange="loadAuctions()">
+          <option value="ending">Ending Soonest</option>
+          <option value="newest">Newest Listed</option>
+          <option value="price_asc">Price: Low → High</option>
+          <option value="price_desc">Price: High → Low</option>
+          <option value="bids">Most Bids</option>
+          <option value="km">Lowest Mileage</option>
+        </select>
+      </div>
+      <div class="fg" style="justify-content:flex-end">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary btn-sm" onclick="loadAuctions()">🔍 Search</button>
+      </div>
+    </div>
+    <div class="active-tags" id="activeFilters"></div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div class="main-layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sb-section">
+        <div class="sb-header" onclick="toggleSb(this)">Body Type <span>▼</span></div>
+        <div class="sb-body">
+          <label class="sb-check"><input type="checkbox"> Sedan <span class="sb-count">84</span></label>
+          <label class="sb-check"><input type="checkbox"> SUV / Crossover <span class="sb-count">112</span></label>
+          <label class="sb-check"><input type="checkbox"> Minivan <span class="sb-count">31</span></label>
+          <label class="sb-check"><input type="checkbox"> Truck / Pickup <span class="sb-count">18</span></label>
+          <label class="sb-check"><input type="checkbox"> Luxury <span class="sb-count">44</span></label>
+          <label class="sb-check"><input type="checkbox"> Hatchback <span class="sb-count">24</span></label>
+          <label class="sb-check"><input type="checkbox"> Coupe <span class="sb-count">12</span></label>
+        </div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-header" onclick="toggleSb(this)">Mileage (km) <span>▼</span></div>
+        <div class="sb-body">
+          <label class="sb-check"><input type="checkbox"> Under 30,000 <span class="sb-count">38</span></label>
+          <label class="sb-check"><input type="checkbox"> 30,000 – 70,000 <span class="sb-count">91</span></label>
+          <label class="sb-check"><input type="checkbox"> 70,000 – 120,000 <span class="sb-count">124</span></label>
+          <label class="sb-check"><input type="checkbox"> 120,000 – 180,000 <span class="sb-count">47</span></label>
+          <label class="sb-check"><input type="checkbox"> Over 180,000 <span class="sb-count">12</span></label>
+        </div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-header" onclick="toggleSb(this)">Color <span>▼</span></div>
+        <div class="sb-body">
+          <label class="sb-check"><input type="checkbox"> White <span class="sb-count">88</span></label>
+          <label class="sb-check"><input type="checkbox"> Black <span class="sb-count">72</span></label>
+          <label class="sb-check"><input type="checkbox"> Silver / Grey <span class="sb-count">61</span></label>
+          <label class="sb-check"><input type="checkbox"> Red <span class="sb-count">18</span></label>
+          <label class="sb-check"><input type="checkbox"> Blue <span class="sb-count">22</span></label>
+          <label class="sb-check"><input type="checkbox"> Beige / Brown <span class="sb-count">31</span></label>
+        </div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-header" onclick="toggleSb(this)">Drive Type <span>▼</span></div>
+        <div class="sb-body">
+          <label class="sb-check"><input type="checkbox"> 4WD / AWD <span class="sb-count">98</span></label>
+          <label class="sb-check"><input type="checkbox"> FWD <span class="sb-count">140</span></label>
+          <label class="sb-check"><input type="checkbox"> RWD <span class="sb-count">74</span></label>
+        </div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-header" onclick="toggleSb(this)">Location <span>▼</span></div>
+        <div class="sb-body">
+          <label class="sb-check"><input type="checkbox"> Tbilisi <span class="sb-count">204</span></label>
+          <label class="sb-check"><input type="checkbox"> Kutaisi <span class="sb-count">48</span></label>
+          <label class="sb-check"><input type="checkbox"> Batumi <span class="sb-count">32</span></label>
+          <label class="sb-check"><input type="checkbox"> Rustavi <span class="sb-count">18</span></label>
+        </div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-header" onclick="toggleSb(this)">Customs <span>▼</span></div>
+        <div class="sb-body">
+          <label class="sb-check"><input type="checkbox"> Cleared ✓ <span class="sb-count">274</span></label>
+          <label class="sb-check"><input type="checkbox"> Not Cleared <span class="sb-count">38</span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div style="display:flex;flex-direction:column;">
+      <div class="results-bar">
+        <div class="results-count">Showing <span id="resultsCount">—</span> lots</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div class="view-btns">
+            <button class="view-btn active" onclick="setView('grid',this)">⊞</button>
+            <button class="view-btn" onclick="setView('list',this)">☰</button>
+          </div>
+        </div>
+      </div>
+      <div class="cars-area">
+        <div id="auctionGrid" class="car-grid">
+          <div class="loading"><div class="spinner"></div> Loading auctions from server...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- HOW TO SELL -->
+<!-- ═══════════════════════════════════════════ -->
+<!-- AUCTION DETAIL PAGE -->
+<div class="page" id="page-auction">
+  <div id="auctionDetailContent">
+    <div class="loading" style="padding:80px 0"><div class="spinner"></div> Loading...</div>
+  </div>
+</div>
+
+<div class="page" id="page-howSell">
+  <div style="max-width:820px;margin:0 auto;padding:40px 20px">
+    <div style="text-align:center;margin-bottom:36px">
+      <h1 style="font-size:30px;font-weight:800;margin-bottom:10px">How to Sell Your Car</h1>
+      <p style="color:var(--text3);font-size:14px;line-height:1.7">List in minutes. Reach thousands of verified buyers. Keep 100% of the sale price.</p>
+    </div>
+    <div style="display:grid;gap:14px;margin-bottom:36px">
+      <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:22px;display:flex;gap:18px;align-items:flex-start;border-left:4px solid var(--blue)">
+        <div style="width:44px;height:44px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:800;flex-shrink:0">1</div>
+        <div><h3 style="font-size:15px;font-weight:700;margin-bottom:5px">Create a Seller Account</h3><p style="font-size:13px;color:var(--text3);line-height:1.7">Register free. Provide your name, phone and personal ID number. Verification takes 1–2 hours.</p></div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:22px;display:flex;gap:18px;align-items:flex-start;border-left:4px solid var(--orange)">
+        <div style="width:44px;height:44px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:800;flex-shrink:0">2</div>
+        <div><h3 style="font-size:15px;font-weight:700;margin-bottom:5px">Submit Your Car — Pay ₾70</h3><p style="font-size:13px;color:var(--text3);line-height:1.7">Upload 5+ photos, fill in all details, set your starting price. Pay the ₾70 listing fee via BOG Pay or TBC Pay. <strong style="color:var(--orange)">If rejected, fee is fully refunded.</strong></p></div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:22px;display:flex;gap:18px;align-items:flex-start;border-left:4px solid var(--green)">
+        <div style="width:44px;height:44px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:800;flex-shrink:0">3</div>
+        <div><h3 style="font-size:15px;font-weight:700;margin-bottom:5px">Admin Reviews in 24 Hours</h3><p style="font-size:13px;color:var(--text3);line-height:1.7">Our team checks photos, verifies VIN and approves the listing. You get an SMS when it goes live.</p></div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:22px;display:flex;gap:18px;align-items:flex-start;border-left:4px solid var(--red)">
+        <div style="width:44px;height:44px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:800;flex-shrink:0">4</div>
+        <div><h3 style="font-size:15px;font-weight:700;margin-bottom:5px">Buyers Bid — You Get 100%</h3><p style="font-size:13px;color:var(--text3);line-height:1.7">Auction runs 24–72 hours. The buyer pays a 2% commission to AutoBid.ge. You receive the full final bid amount. Done!</p></div>
+      </div>
+    </div>
+    <div style="background:var(--blue);color:#fff;border-radius:10px;padding:26px;text-align:center">
+      <h2 style="font-size:20px;font-weight:700;margin-bottom:6px">Ready to List Your Car?</h2>
+      <p style="font-size:13px;opacity:0.8;margin-bottom:18px">Join hundreds of sellers already using AutoBid.ge</p>
+      <button class="btn btn-gold btn-lg" onclick="openAuth('register');setRole('seller')">Create Seller Account — Free</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- BUYER PROFILE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page" id="page-buyer">
+  <div class="profile-layout">
+    <div class="profile-sidebar">
+      <div class="p-avatar-section">
+        <div class="p-avatar" id="buyerAvatar">GK</div>
+        <div class="p-name" id="buyerName">Loading...</div>
+        <div class="p-role">🏁 BUYER</div>
+      </div>
+      <button class="p-nav active" onclick="showBuyerTab('dashboard',this)">📊 Dashboard</button>
+      <button class="p-nav" onclick="showBuyerTab('bids',this)">🔴 Active Bids</button>
+      <button class="p-nav" onclick="showBuyerTab('won',this)">🏆 Won Auctions</button>
+      <button class="p-nav" onclick="showBuyerTab('watchlist',this)">👁 Watchlist</button>
+      <button class="p-nav" onclick="showBuyerTab('payments',this)">💳 Payments</button>
+      <button class="p-nav" onclick="showBuyerTab('settings',this)">⚙️ Settings</button>
+      <button class="p-nav" onclick="showPage('home')">← Back to Auctions</button>
+    </div>
+    <div class="p-main" id="buyerMain"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SELLER PROFILE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page" id="page-seller">
+  <div class="profile-layout">
+    <div class="profile-sidebar">
+      <div class="p-avatar-section">
+        <div class="p-avatar" style="background:var(--orange)" id="sellerAvatar">NK</div>
+        <div class="p-name" id="sellerName">Loading...</div>
+        <div class="p-role seller">🚗 SELLER</div>
+      </div>
+      <button class="p-nav active" onclick="showSellerTab('dashboard',this)">📊 Dashboard</button>
+      <button class="p-nav" onclick="showSellerTab('listings',this)">🚗 My Listings</button>
+      <button class="p-nav" onclick="showSellerTab('upload',this)">➕ List New Car</button>
+      <button class="p-nav" onclick="showSellerTab('settings',this)">⚙️ Settings</button>
+      <button class="p-nav" onclick="showPage('home')">← Back to Auctions</button>
+    </div>
+    <div class="p-main" id="sellerMain"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- ADMIN PANEL -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page" id="page-admin">
+  <div class="admin-layout">
+    <div class="admin-sidebar">
+      <div class="admin-brand">
+        <div class="admin-brand-icon" style="color:#fff">AB</div>
+        <div><div class="admin-brand-text">AutoBid.ge</div><div class="admin-brand-sub">ADMIN PANEL</div></div>
+      </div>
+      <div class="admin-nav-label">OVERVIEW</div>
+      <button class="admin-nav active" onclick="showAdminSec('dashboard',this)">📊 Dashboard</button>
+      <button class="admin-nav" onclick="showAdminSec('live',this)">🔴 Live Auctions</button>
+      <div class="admin-nav-label">MODERATION</div>
+      <button class="admin-nav" onclick="showAdminSec('requests',this)">📋 Car Requests <span class="admin-nav-badge" id="reqCount">...</span></button>
+      <button class="admin-nav" onclick="showAdminSec('users',this)">👥 Users</button>
+      <div class="admin-nav-label">FINANCE</div>
+      <button class="admin-nav" onclick="showAdminSec('revenue',this)">💰 Revenue</button>
+      <button class="admin-nav" onclick="showAdminSec('transactions',this)">🧾 Transactions</button>
+      <div class="admin-nav-label">SETTINGS</div>
+      <button class="admin-nav" onclick="showAdminSec('settings',this)">⚙️ Platform Settings</button>
+      <div style="padding:14px 16px;margin-top:auto;border-top:1px solid rgba(255,255,255,0.1)">
+        <button class="btn btn-ghost btn-sm" style="width:100%;color:rgba(255,255,255,0.5)" onclick="doLogout()">← Sign Out</button>
+      </div>
+    </div>
+    <div class="admin-main">
+      <div class="admin-section active" id="as-dashboard"></div>
+      <div class="admin-section" id="as-live"></div>
+      <div class="admin-section" id="as-requests"></div>
+      <div class="admin-section" id="as-users"></div>
+      <div class="admin-section" id="as-revenue"></div>
+      <div class="admin-section" id="as-transactions"></div>
+      <div class="admin-section" id="as-settings"></div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="overlay" id="authOverlay">
+  <div class="auth-modal">
+    <div class="auth-header">
+      <h2 id="authTitle">Sign In to AutoBid.ge</h2>
+      <p id="authSub">Access live auctions and place bids</p>
+    </div>
+    <div class="auth-body">
+      <div class="auth-tabs">
+        <div class="auth-tab active" onclick="switchTab('login')">Sign In</div>
+        <div class="auth-tab" onclick="switchTab('register')">Register</div>
+      </div>
+      <div id="authError" class="form-error hidden"></div>
+
+      <!-- LOGIN -->
+      <div id="loginForm">
+        <div class="form-group"><label class="form-label">Phone Number</label><input class="form-input" id="loginPhone" placeholder="+995 5XX XXX XXX"></div>
+        <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="loginPass" placeholder="••••••••"></div>
+        <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center" id="loginBtn" onclick="doLogin()">Sign In</button>
+        <div style="margin-top:12px;padding:10px 12px;background:var(--gray);border-radius:6px;font-size:11px;color:var(--text3);text-align:center;border:1px solid var(--border)">
+          🛡️ <strong>Admin?</strong> Use your registered admin phone number and password to sign in. You will be redirected to the admin panel automatically.
+        </div>
+        <div class="form-note">No account? <a onclick="switchTab('register')">Register free</a></div>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="registerForm" class="hidden">
+        <div class="role-grid">
+          <div class="role-opt active" id="roleBuyer" onclick="setRole('buyer')">
+            <div class="role-icon">🏁</div>
+            <div class="role-name">Buy Cars</div>
+            <div class="role-desc">Free to register<br>2% commission on wins</div>
+          </div>
+          <div class="role-opt" id="roleSeller" onclick="setRole('seller')">
+            <div class="role-icon">🚗</div>
+            <div class="role-name">Sell Cars</div>
+            <div class="role-desc">₾70 per listing<br>Keep 100% of sale</div>
+          </div>
+        </div>
+        <div class="form-2col">
+          <div class="form-group"><label class="form-label">First Name</label><input class="form-input" id="regFirst" placeholder="გიორგი"></div>
+          <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" id="regLast" placeholder="ბერიძე"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Phone Number</label><input class="form-input" id="regPhone" placeholder="+995 5XX XXX XXX"></div>
+        <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="regPass" placeholder="Minimum 8 characters"></div>
+        <div class="form-group hidden" id="idGroup"><label class="form-label">Personal ID Number <span style="color:var(--red)">*required for sellers</span></label><input class="form-input" id="regId" placeholder="01234567890"></div>
+        <div class="info-box" id="roleInfoBox">🏁 Buyer account is free. You only pay 2% commission when you win an auction.</div>
+        <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center" id="registerBtn" onclick="doRegister()">Create Account</button>
+        <div class="form-note">Already have an account? <a onclick="switchTab('login')">Sign In</a></div>
+      </div>
+    </div>
+    <button onclick="closeAuth()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:14px;cursor:pointer">✕</button>
+  </div>
+</div>
+
+<!-- CAR DETAIL MODAL -->
+<div class="overlay" id="carOverlay">
+  <div class="modal">
+    <div class="modal-top">
+      <div><div style="font-size:10px;opacity:0.7;font-family:var(--mono)" id="mdLot"></div><h2 id="mdTitle"></h2></div>
+      <button class="modal-close" onclick="closeCarModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="modal-gallery" id="mdImg">🚗</div>
+        <div class="spec-grid" id="mdSpecs"></div>
+        <div style="font-size:12px;color:var(--text3);line-height:1.6" id="mdDesc"></div>
+      </div>
+      <div>
+        <div class="bid-panel">
+          <div class="bid-panel-title">🔴 Live Auction</div>
+          <div class="current-bid-label">CURRENT BID</div>
+          <div class="current-bid-amt" id="mdBidAmt">₾—</div>
+          <div class="bid-count" id="mdBidCount">— bids</div>
+          <div class="timer-box">
+            <div><div class="timer-box-label">⏱ TIME REMAINING</div><div class="timer-box-val" id="mdTimer">--:--:--</div></div>
+            <div style="font-size:10px;color:var(--red);font-family:var(--mono)" id="mdStatusTag"></div>
+          </div>
+          <div class="fee-note" id="mdFeeNote">Select an auction to see fee details</div>
+          <div class="bid-row" id="mdBidRow">
+            <input class="bid-input" type="number" id="mdBidInput" placeholder="₾">
+            <button class="btn btn-red btn-md" onclick="placeBid()">Place Bid</button>
+          </div>
+          <button class="btn btn-gray btn-md" style="width:100%;justify-content:center;margin-bottom:6px" onclick="addToWatchlist()">👁 Add to Watchlist</button>
+          <div class="bid-hist-title">Bid History</div>
+          <div id="mdBidHistory"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════
+const API = 'https://autobid-back-production.up.railway.app/api/v1';
+const COMMISSION = 0.02;
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+let currentUser = null;
+let accessToken = localStorage.getItem('access_token') || null;
+let selectedAuction = null;
+let currentRole = 'buyer';
+let viewMode = 'grid';
+let modalTimer = null;
+let carTimers = {};
+
+// ═══════════════════════════════════════════════════
+// API HELPER
+// ═══════════════════════════════════════════════════
+async function api(method, path, body = null, isForm = false) {
+  const headers = {};
+  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+  if (!isForm) headers['Content-Type'] = 'application/json';
+
+  const opts = { method, headers };
+  if (body) opts.body = isForm ? body : JSON.stringify(body);
+
+  try {
+    const res = await fetch(API + path, opts);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+async function init() {
+  setInterval(() => {
+    document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB');
+  }, 1000);
+
+  // Check API health
+  try {
+    await fetch(API.replace('/api/v1', '') + '/health');
+    document.getElementById('apiStatus').textContent = '✅ API Connected';
+    document.getElementById('apiStatus').style.color = '#4caf50';
+  } catch {
+    document.getElementById('apiStatus').textContent = '❌ API Offline';
+    document.getElementById('apiStatus').style.color = '#ef5350';
+  }
+
+  // Restore session
+  if (accessToken) {
+    try {
+      const res = await api('GET', '/auth/me');
+      currentUser = res.data;
+      updateNavForUser();
+    } catch {
+      accessToken = null;
+      localStorage.removeItem('access_token');
+    }
+  }
+
+  loadAuctions();
+  loadDashboardStats();
+}
+
+// ═══════════════════════════════════════════════════
+// AUCTIONS
+// ═══════════════════════════════════════════════════
+// MAKE → MODEL DATA
+const MODELS = {
+  'Toyota':['Camry','Corolla','Land Cruiser 200','Land Cruiser 300','Land Cruiser Prado','RAV4','Highlander','Venza','Fortuner','Hilux','Prius','Yaris','Avalon','Sequoia','4Runner','Sienna','Tacoma','Tundra','C-HR','Auris'],
+  'Honda':['Civic','Accord','CR-V','HR-V','Pilot','Passport','Fit','Jazz','Freed','Stepwgn','Odyssey','Insight'],
+  'Nissan':['Qashqai','X-Trail','Patrol','Pathfinder','Murano','Juke','Leaf','Altima','Maxima','Sentra','Note','Tiida','Navara','Armada'],
+  'Mazda':['CX-5','CX-9','CX-3','CX-30','Mazda3','Mazda6','MX-5','BT-50','CX-50'],
+  'Subaru':['Forester','Outback','Legacy','Impreza','XV','WRX','BRZ','Ascent','Crosstrek'],
+  'Mitsubishi':['Outlander','Eclipse Cross','ASX','Pajero','L200','Lancer','Galant','Grandis'],
+  'Lexus':['RX 350','RX 450h','NX 200','NX 300','LX 570','LX 600','GX 460','IS 250','IS 300','ES 250','ES 350','LS 500','UX 200'],
+  'Infiniti':['QX60','QX80','QX50','Q50','Q60','FX35','FX37','M35'],
+  'BMW':['X5','X6','X7','X3','X4','X1','X2','520d','523i','525i','530d','535i','540i','316i','318i','320i','320d','328i','330i','520i','730i','740i','750i','M3','M5','Z4'],
+  'Mercedes-Benz':['E200','E220','E250','E300','E350','C180','C200','C220','C250','C300','S350','S400','S500','GLE 350','GLE 400','GLC 200','GLC 300','GLS 400','GLS 450','ML 350','GL 450','A180','A200','B180','CLA 200','GLA 200','AMG GT'],
+  'Audi':['A4','A5','A6','A7','A8','Q3','Q5','Q7','Q8','TT','R8','S4','S6','RS4','RS6','e-tron'],
+  'Volkswagen':['Golf','Passat','Tiguan','Touareg','Polo','Jetta','Arteon','T-Roc','Touran','Multivan'],
+  'Porsche':['Cayenne','Macan','Panamera','911','Taycan','Boxster','Cayman'],
+  'Opel':['Astra','Insignia','Mokka','Zafira','Corsa','Crossland','Grandland'],
+  'Ford':['Focus','Mondeo','Kuga','Explorer','F-150','Ranger','Mustang','Edge','Escape','Expedition','Transit','EcoSport'],
+  'Chevrolet':['Captiva','Tahoe','Suburban','Traverse','Equinox','Malibu','Cruze','Spark','Blazer','Silverado','Colorado','Trailblazer'],
+  'Jeep':['Grand Cherokee','Cherokee','Wrangler','Compass','Renegade','Gladiator'],
+  'Dodge':['Durango','Journey','Charger','Challenger','Ram 1500'],
+  'Cadillac':['Escalade','XT5','XT6','CTS','ATS'],
+  'Hyundai':['Tucson','Santa Fe','ix35','Sonata','Elantra','Accent','Kona','Palisade','Creta','i30','i20','Staria','Grand Starex'],
+  'Kia':['Sportage','Sorento','Stinger','Telluride','Carnival','Seltos','Rio','Cerato','Optima','K5','Niro','EV6'],
+  'Genesis':['GV80','GV70','G80','G70'],
+  'Peugeot':['308','508','3008','5008','208','2008','407','Partner'],
+  'Renault':['Duster','Koleos','Megane','Logan','Sandero','Kadjar','Captur','Scenic','Laguna'],
+  'Citroen':['C3','C4','C5','Berlingo','Jumper','SpaceTourer'],
+  'Volvo':['XC90','XC60','XC40','S90','S60','V90','V60'],
+  'Land Rover':['Range Rover','Range Rover Sport','Range Rover Evoque','Discovery','Defender','Freelander'],
+  'Jaguar':['F-Pace','E-Pace','XE','XF','XJ','F-Type'],
+  'Haval':['H6','H9','Jolion','F7','F7x'],
+  'Chery':['Tiggo 7','Tiggo 8','Tiggo 4','Arrizo 5'],
+  'Geely':['Atlas','Coolray','Emgrand X7'],
+  'BYD':['Han','Tang','Song','Seal','Atto 3'],
+  'Tesla':['Model 3','Model Y','Model S','Model X'],
+};
+
+function onMakeChange() {
+  const make = document.getElementById('fMake').value;
+  const modelSel = document.getElementById('fModel');
+  modelSel.innerHTML = '<option value="">All Models</option>';
+  if (!make) {
+    modelSel.disabled = true;
+    modelSel.style.opacity = '0.5';
+  } else {
+    modelSel.disabled = false;
+    modelSel.style.opacity = '1';
+    (MODELS[make] || []).forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m; opt.textContent = m;
+      modelSel.appendChild(opt);
+    });
+  }
+  loadAuctions();
+}
+
+function setSidebarFilter(filterId, value) {
+  const el = document.getElementById(filterId);
+  if (el) { el.value = value; loadAuctions(); }
+}
+
+async function loadAuctions() {
+  const grid = document.getElementById('auctionGrid');
+  grid.innerHTML = '<div class="loading"><div class="spinner"></div> Loading auctions...</div>';
+
+  const params = new URLSearchParams();
+  const make = document.getElementById('fMake')?.value;
+  const model = document.getElementById('fModel')?.value;
+  const fuel = document.getElementById('fFuel')?.value;
+  const trans = document.getElementById('fTrans')?.value;
+  const body = document.getElementById('fBody')?.value;
+  const engine = document.getElementById('fEngine')?.value;
+  const status = document.getElementById('fStatus')?.value;
+  const priceFrom = document.getElementById('fPriceFrom')?.value;
+  const priceTo = document.getElementById('fPriceTo')?.value;
+  const yearFrom = document.getElementById('fYearFrom')?.value;
+  const yearTo = document.getElementById('fYearTo')?.value;
+  const sort = document.getElementById('fSort')?.value || 'ending';
+
+  if (make) params.set('make', make);
+  if (model) params.set('model', model);
+  if (fuel) params.set('fuel_type', fuel);
+  if (trans) params.set('transmission', trans);
+  if (body) params.set('body_type', body);
+  if (engine) params.set('engine_size', engine + 'L');
+  if (status) params.set('status', status);
+  if (priceFrom) params.set('min_price', priceFrom);
+  if (priceTo) params.set('max_price', priceTo);
+  if (yearFrom) params.set('year_from', yearFrom);
+  if (yearTo) params.set('year_to', yearTo);
+  params.set('sort', sort);
+  params.set('limit', '24');
+
+  try {
+    const res = await api('GET', '/auctions?' + params.toString());
+    const auctions = res.data || [];
+    document.getElementById('resultsCount').textContent = res.pagination?.total || auctions.length;
+    renderAuctions(auctions);
+  } catch (err) {
+    grid.innerHTML = `<div class="empty">❌ Could not load auctions: ${err.message}</div>`;
+  }
+}
+
+async function loadDashboardStats() {
+  // Try to get live count from admin dashboard if admin, else just show totals
+  try {
+    if (currentUser?.role === 'admin') {
+      const res = await api('GET', '/admin/dashboard');
+      document.getElementById('statLive').textContent = res.data.live_auctions;
+      document.getElementById('statUsers').textContent = res.data.total_users.toLocaleString();
+    }
+  } catch {}
+}
+
+function renderAuctions(auctions) {
+  const grid = document.getElementById('auctionGrid');
+  if (!auctions.length) {
+    grid.innerHTML = '<div class="empty">No auctions found matching your filters.</div>';
+    return;
+  }
+  grid.className = viewMode === 'grid' ? 'car-grid' : 'car-list';
+  grid.innerHTML = auctions.map(a => viewMode === 'grid' ? cardGrid(a) : cardList(a)).join('');
+  startTimers(auctions);
+}
+
+function cardGrid(a) {
+  const status = a.status;
+  const ribbonClass = status === 'live' ? 'ribbon-live' : status === 'scheduled' ? 'ribbon-upcoming' : 'ribbon-ending';
+  const ribbonText = status === 'live' ? '● LIVE' : status === 'scheduled' ? '📅 UPCOMING' : status === 'ended' ? 'ENDED' : '⚡ ENDING';
+  return `<div class="car-card" onclick="openAuction('${a.id}')">
+    <div class="car-img">🚗
+      <div class="car-ribbon ${ribbonClass}">${ribbonText}</div>
+      <button class="car-fav" onclick="event.stopPropagation();addToWatchlistById('${a.id}')">🤍</button>
+    </div>
+    <div class="car-body">
+      <div class="car-lot">LOT: ${a.lot_number || '—'} · ${a.location_city || 'Tbilisi'}</div>
+      <div class="car-name">${a.year} ${a.make} ${a.model}</div>
+      <div class="car-sub">${a.color || ''} · ${a.transmission || ''}</div>
+      <div class="car-specs">
+        <span class="spec">${parseInt(a.mileage_km).toLocaleString()} km</span>
+        <span class="spec">${a.fuel_type}</span>
+        <span class="spec">${a.condition_rating || ''}</span>
+      </div>
+      <div class="car-price-row">
+        <div>
+          <div class="plabel">${a.bid_count > 0 ? 'CURRENT BID' : 'STARTING BID'}</div>
+          <div class="pval">₾${parseFloat(a.current_price).toLocaleString()}</div>
+          <div style="font-size:9px;color:var(--text3);font-family:var(--mono)">${a.bid_count} bid${a.bid_count !== 1 ? 's' : ''}</div>
+        </div>
+        <div>
+          <div class="timer-label">ENDS IN</div>
+          <div class="timer" id="ct-${a.id}">${fmtTimer(new Date(a.end_time))}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function cardList(a) {
+  return `<div class="car-list-item" onclick="openAuction('${a.id}')">
+    <div class="car-list-img">🚗</div>
+    <div class="car-list-info">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <strong style="font-size:14px">${a.year} ${a.make} ${a.model}</strong>
+        <span class="pill pill-${a.status}">${a.status.toUpperCase()}</span>
+      </div>
+      <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:5px">LOT ${a.lot_number || '—'} · ${a.location_city} · ${parseInt(a.mileage_km).toLocaleString()} km</div>
+      <div class="car-specs">
+        <span class="spec">${a.fuel_type}</span>
+        <span class="spec">${a.transmission}</span>
+        <span class="spec">${a.condition_rating || ''}</span>
+        <span class="spec">🛃 ${a.customs_status || 'Cleared'}</span>
+      </div>
+    </div>
+    <div class="car-list-price">
+      <div style="font-size:9px;color:var(--text3);font-family:var(--mono)">${a.bid_count > 0 ? 'CURRENT BID' : 'STARTING BID'}</div>
+      <div style="font-size:22px;font-weight:700;color:var(--blue);font-family:var(--mono)">₾${parseFloat(a.current_price).toLocaleString()}</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:8px;font-family:var(--mono)">${a.bid_count} bids</div>
+      <div class="timer" id="ct-${a.id}">${fmtTimer(new Date(a.end_time))}</div>
+    </div>
+  </div>`;
+}
+
+function fmtTimer(endDate) {
+  const diff = endDate - Date.now();
+  if (diff <= 0) return 'ENDED';
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  if (d > 0) return `${d}d ${h}h ${m}m`;
+  if (h > 0) return `${h}h ${m}m ${s}s`;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function startTimers(auctions) {
+  Object.values(carTimers).forEach(clearInterval);
+  carTimers = {};
+  auctions.forEach(a => {
+    const end = new Date(a.end_time);
+    carTimers[a.id] = setInterval(() => {
+      const el = document.getElementById('ct-' + a.id);
+      if (el) el.textContent = fmtTimer(end);
+    }, 1000);
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// AUCTION DETAIL - FULL PAGE (Copart style)
+// ═══════════════════════════════════════════════════
+async function openAuction(id) {
+  showPage('auction');
+  window.scrollTo(0,0);
+  const container = document.getElementById('auctionDetailContent');
+  container.innerHTML = '<div class="loading" style="padding:80px 0"><div class="spinner"></div> Loading auction...</div>';
+
+  try {
+    const res = await api('GET', '/auctions/' + id);
+    const a = res.data;
+    selectedAuction = a;
+
+    const isLive = a.status === 'live';
+    const isEnding = isLive && (new Date(a.end_time) - Date.now()) < 3600000;
+    const comm = Math.round(parseFloat(a.current_price) * COMMISSION);
+    const bids = a.recent_bids || [];
+
+    container.innerHTML = `
+    <div class="ad-wrap">
+      <div class="ad-breadcrumb">
+        <a onclick="showPage('home')">🏠 Auctions</a> &rsaquo;
+        <a onclick="showPage('home')">${a.make} ${a.model}</a> &rsaquo;
+        <span>LOT ${a.lot_number || '—'}</span>
+      </div>
+      <div class="ad-header">
+        <div class="ad-header-left">
+          <h1>${a.year} ${a.make} ${a.model}</h1>
+          <div class="ad-header-badges">
+            <span class="ad-badge ${isLive ? 'ad-badge-live' : 'ad-badge-lot'}">${isLive ? '● LIVE' : a.status.toUpperCase()}</span>
+            <span class="ad-badge ad-badge-lot">LOT: ${a.lot_number || '—'}</span>
+            <span class="ad-badge ad-badge-lot">📍 ${a.location_city}</span>
+            ${a.customs_status === 'Cleared' ? '<span class="ad-badge ad-badge-cleared">🛃 Customs Cleared</span>' : '<span class="ad-badge" style="background:#fff3e0;color:#e65100;border:1px solid #f5a623">⚠️ Not Cleared</span>'}
+            ${a.is_accident_free ? '<span class="ad-badge ad-badge-cleared">✓ Accident Free</span>' : ''}
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;color:var(--text3);font-family:var(--mono)">Seller: ${a.seller_name}</div>
+        </div>
+      </div>
+      <div class="ad-main">
+        <div class="ad-left">
+          <div class="ad-gallery">
+            <div class="ad-gallery-main" id="adMainImg">🚗</div>
+            <div class="ad-thumbs">
+              <div class="ad-thumb active">🚗</div>
+              <div class="ad-thumb">🚘</div>
+              <div class="ad-thumb">🚙</div>
+            </div>
+          </div>
+          <div class="ad-info-tabs">
+            <div class="ad-info-tab active" onclick="switchAdTab('specs',this)">📋 Specifications</div>
+            <div class="ad-info-tab" onclick="switchAdTab('desc',this)">📝 Description</div>
+            <div class="ad-info-tab" onclick="switchAdTab('history',this)">📜 Bid History (${bids.length})</div>
+          </div>
+          <div id="adTabSpecs">
+            <div class="ad-specs-grid">
+              ${[['Year',a.year],['Mileage',parseInt(a.mileage_km).toLocaleString()+' km'],['Fuel',a.fuel_type],['Transmission',a.transmission],['Drive',a.drive_type||'—'],['Engine',a.engine_size||'—'],['Color',a.color||'—'],['Body',a.body_type||'—'],['Condition',a.condition_rating],['Customs',a.customs_status||'Cleared'],['VIN',a.vin?a.vin.substring(0,8)+'...':'—'],['Service History',a.has_service_history?'Yes ✓':'No'],['Accident Free',a.is_accident_free?'Yes ✓':'No'],['Location',a.location_city]].map(([l,v])=>`<div class="ad-spec"><div class="ad-spec-label">${l}</div><div class="ad-spec-val">${v}</div></div>`).join('')}
+            </div>
+          </div>
+          <div id="adTabDesc" style="display:none">
+            <div class="ad-desc"><div class="ad-desc-title">Description</div><div class="ad-desc-text">${a.description_ka||a.description_en||'No description.'}</div></div>
+          </div>
+          <div id="adTabHistory" style="display:none">
+            <div class="ad-desc"><div class="ad-desc-title">Bid History (${bids.length})</div>
+              ${bids.length===0?'<div style="color:var(--text3);font-size:13px">No bids yet!</div>':bids.map(b=>`<div class="ad-bid-hist-row"><span class="ad-bid-hist-user">${b.bidder_name}</span><span class="ad-bid-hist-amt">₾${parseFloat(b.amount).toLocaleString()}</span><span class="ad-bid-hist-time">${new Date(b.placed_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span></div>`).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="ad-right">
+          <div class="ad-bid-panel">
+            <div class="ad-bid-header">
+              <div class="ad-bid-header-top">
+                <div class="ad-bid-status"><span style="width:8px;height:8px;border-radius:50%;background:${isLive?'#4caf50':'#aaa'};display:inline-block"></span> ${isLive?'LIVE AUCTION':a.status.toUpperCase()}</div>
+                <div class="ad-bid-lot">LOT #${a.lot_number||'—'}</div>
+              </div>
+              <div class="ad-bid-timer-row">
+                <div><div class="ad-bid-timer-label">⏱ TIME REMAINING</div><div class="ad-bid-timer-val" id="adTimer">${fmtTimer(new Date(a.end_time))}</div></div>
+                <div style="text-align:right"><div style="font-size:10px;color:rgba(255,255,255,0.6);font-family:var(--mono)">ENDS</div><div style="font-size:11px;color:rgba(255,255,255,0.8);font-family:var(--mono)">${new Date(a.end_time).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</div></div>
+              </div>
+            </div>
+            <div class="ad-bid-body">
+              <div class="ad-current-bid-section">
+                <div class="ad-current-bid-label">CURRENT BID</div>
+                <div class="ad-current-bid-amount" id="adCurrentBid">₾${parseFloat(a.current_price).toLocaleString()}</div>
+                <div class="ad-bid-count" id="adBidCount">${a.bid_count} bid${a.bid_count!==1?'s':''} placed</div>
+                ${bids.length>0?`<div style="margin-top:8px">${bids.slice(0,3).map(b=>`<div class="ad-bid-hist-row"><span class="ad-bid-hist-user">${b.bidder_name}</span><span class="ad-bid-hist-amt">₾${parseFloat(b.amount).toLocaleString()}</span><span class="ad-bid-hist-time">${new Date(b.placed_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span></div>`).join('')}</div>`:''}
+              </div>
+              <div class="ad-fee-box">💡 If you win at current price:<br><strong>Commission (2%): ₾${comm.toLocaleString()}</strong><br><strong>Total you pay: ₾${(parseFloat(a.current_price)+comm).toLocaleString()}</strong></div>
+              ${isLive?`
+              <div class="ad-bid-input-section">
+                <div class="ad-bid-input-label">YOUR BID AMOUNT</div>
+                <div class="ad-bid-input-row">
+                  <div class="ad-bid-currency">₾</div>
+                  <input class="ad-bid-input" type="number" id="adBidInput" placeholder="${(parseFloat(a.current_price)+100).toLocaleString()}" min="${parseFloat(a.current_price)+100}" step="100">
+                </div>
+              </div>
+              <div class="ad-min-bid-note">Min bid: ₾${(parseFloat(a.current_price)+100).toLocaleString()} · Increment: ₾100</div>
+              <button class="ad-bid-btn" onclick="placeBidFromPage()" id="adBidBtn">🔨 Place Bid</button>`:`
+              <div style="background:var(--gray);border-radius:8px;padding:16px;text-align:center;color:var(--text3);font-size:13px;margin-bottom:12px">${a.status==='ended'?'✅ This auction has ended':'📅 Auction not yet started'}</div>`}
+              <button class="ad-watch-btn" onclick="addToWatchlistFromPage('${a.id}')">👁 Add to Watchlist</button>
+            </div>
+            <div class="ad-seller-box"><span>👤 ${a.seller_name}</span><span>📍 ${a.location_city}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+    clearInterval(modalTimer);
+    const endTime = new Date(a.end_time);
+    modalTimer = setInterval(() => {
+      const el = document.getElementById('adTimer');
+      if(el) el.textContent = fmtTimer(endTime);
+    }, 1000);
+
+  } catch(err) {
+    container.innerHTML = '<div class="empty">❌ Could not load auction: ' + err.message + '</div>';
+    showToast('Error: ' + err.message, 'error');
+  }
+}
+
+function switchAdTab(tab, el) {
+  document.querySelectorAll('.ad-info-tab').forEach(t => t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  ['Specs','Desc','History'].forEach(t => {
+    const div = document.getElementById('adTab'+t);
+    if(div) div.style.display = (t.toLowerCase()===tab) ? 'block' : 'none';
+  });
+}
+
+async function placeBidFromPage() {
+  if (!currentUser) { openAuth('login'); return; }
+  if (currentUser.role !== 'buyer') { showToast('Only buyers can place bids', 'error'); return; }
+  const amount = parseFloat(document.getElementById('adBidInput')?.value);
+  const minBid = parseFloat(selectedAuction.current_price) + 100;
+  if (!amount || amount < minBid) { showToast('Minimum bid is ₾' + minBid.toLocaleString(), 'error'); return; }
+  const comm = Math.round(amount * COMMISSION);
+  if (!confirm('Place bid: ₾' + amount.toLocaleString() + '\nCommission if win: ₾' + comm.toLocaleString() + '\nTotal: ₾' + (amount+comm).toLocaleString())) return;
+  const btn = document.getElementById('adBidBtn');
+  if(btn) { btn.disabled=true; btn.textContent='Placing...'; }
+  try {
+    await api('POST', '/auctions/' + selectedAuction.id + '/bid', { amount });
+    selectedAuction.current_price = amount;
+    selectedAuction.bid_count = (selectedAuction.bid_count||0) + 1;
+    const bidEl = document.getElementById('adCurrentBid');
+    const countEl = document.getElementById('adBidCount');
+    if(bidEl) bidEl.textContent = '₾' + amount.toLocaleString();
+    if(countEl) countEl.textContent = selectedAuction.bid_count + ' bids placed';
+    if(document.getElementById('adBidInput')) { document.getElementById('adBidInput').value=''; document.getElementById('adBidInput').placeholder=(amount+100).toLocaleString(); }
+    showToast('✅ Bid placed: ₾' + amount.toLocaleString(), 'success');
+    loadAuctions();
+  } catch(err) { showToast('Bid failed: ' + err.message, 'error'); }
+  finally { if(btn) { btn.disabled=false; btn.innerHTML='🔨 Place Bid'; } }
+}
+
+async function addToWatchlistFromPage(id) {
+  if (!currentUser) { openAuth('login'); return; }
+  try { await api('POST', '/auctions/' + id + '/watchlist'); showToast('Added to watchlist!', 'success'); }
+  catch(err) { showToast(err.message, 'error'); }
+}
+
+function closeCarModal() {
+  document.getElementById('carOverlay').classList.remove('open');
+  clearInterval(modalTimer);
+}
+
+async function placeBid() {
+  if (!currentUser) { closeCarModal(); openAuth('login'); return; }
+  if (currentUser.role !== 'buyer') { showToast('Only buyers can place bids', 'error'); return; }
+
+  const amount = parseFloat(document.getElementById('mdBidInput').value);
+  const minBid = parseFloat(selectedAuction.current_price) + 100;
+
+  if (!amount || amount < minBid) {
+    showToast(`Minimum bid is ₾${minBid.toLocaleString()}`, 'error'); return;
+  }
+
+  const comm = Math.round(amount * COMMISSION);
+  if (!confirm(`Place bid: ₾${amount.toLocaleString()}\nCommission if you win: ₾${comm.toLocaleString()}\nTotal if you win: ₾${(amount + comm).toLocaleString()}\n\nConfirm?`)) return;
+
+  try {
+    await api('POST', `/auctions/${selectedAuction.id}/bid`, { amount });
+    selectedAuction.current_price = amount;
+    selectedAuction.bid_count = (selectedAuction.bid_count || 0) + 1;
+    document.getElementById('mdBidAmt').textContent = '₾' + amount.toLocaleString();
+    document.getElementById('mdBidCount').textContent = selectedAuction.bid_count + ' bids placed';
+    document.getElementById('mdBidInput').value = '';
+    const newComm = Math.round(amount * COMMISSION);
+    document.getElementById('mdFeeNote').innerHTML = `💡 Your bid: ₾${amount.toLocaleString()} · Commission if you win: <strong>₾${newComm.toLocaleString()}</strong> · Total: <strong>₾${(amount + newComm).toLocaleString()}</strong>`;
+    showToast(`✅ Bid placed: ₾${amount.toLocaleString()}`, 'success');
+    loadAuctions();
+  } catch (err) {
+    showToast('Bid failed: ' + err.message, 'error');
+  }
+}
+
+async function addToWatchlist() {
+  if (!currentUser) { openAuth('login'); return; }
+  try {
+    await api('POST', `/auctions/${selectedAuction.id}/watchlist`);
+    showToast('Added to watchlist!', 'success');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function addToWatchlistById(id) {
+  if (!currentUser) { openAuth('login'); return; }
+  try {
+    await api('POST', `/auctions/${id}/watchlist`);
+    showToast('Added to watchlist!', 'success');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════
+function openAuth(tab) {
+  document.getElementById('authOverlay').classList.add('open');
+  switchTab(tab);
+  document.getElementById('authError').classList.add('hidden');
+}
+function closeAuth() { document.getElementById('authOverlay').classList.remove('open'); }
+document.getElementById('authOverlay').addEventListener('click', e => { if (e.target === document.getElementById('authOverlay')) closeAuth(); });
+document.getElementById('carOverlay').addEventListener('click', e => { if (e.target === document.getElementById('carOverlay')) closeCarModal(); });
+
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1)));
+  document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+  document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+  document.getElementById('authError').classList.add('hidden');
+}
+
+function setRole(r) {
+  currentRole = r;
+  document.getElementById('roleBuyer').classList.toggle('active', r === 'buyer');
+  document.getElementById('roleSeller').classList.toggle('active', r === 'seller');
+  document.getElementById('idGroup').classList.toggle('hidden', r !== 'seller');
+  document.getElementById('roleInfoBox').textContent = r === 'seller'
+    ? '🚗 Seller account: Pay ₾70 per listing. No extra fees — you keep 100% of the final bid.'
+    : '🏁 Buyer account is free. You only pay 2% commission when you win.';
+}
+
+async function doLogin() {
+  const phone = document.getElementById('loginPhone').value.trim();
+  const password = document.getElementById('loginPass').value;
+  if (!phone || !password) { showAuthError('Phone and password are required'); return; }
+
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = 'Signing in...'; btn.disabled = true;
+
+  try {
+    const res = await api('POST', '/auth/login', { phone, password });
+    accessToken = res.data.tokens.access;
+    localStorage.setItem('access_token', accessToken);
+    currentUser = res.data.user;
+    updateNavForUser();
+    closeAuth();
+    showToast(`Welcome back, ${currentUser.full_name.split(' ')[0]}!`, 'success');
+    if (currentUser.role === 'admin') { showPage('admin'); initAdmin(); }
+    else if (currentUser.role === 'seller') { showPage('seller'); initSellerProfile(); }
+    else { showPage('buyer'); initBuyerProfile(); }
+  } catch (err) {
+    showAuthError(err.message);
+  } finally {
+    btn.textContent = 'Sign In'; btn.disabled = false;
+  }
+}
+
+async function doRegister() {
+  const first = document.getElementById('regFirst').value.trim();
+  const last = document.getElementById('regLast').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const password = document.getElementById('regPass').value;
+  const id_number = document.getElementById('regId').value.trim();
+
+  if (!first || !last || !phone || !password) { showAuthError('All fields are required'); return; }
+  if (password.length < 8) { showAuthError('Password must be at least 8 characters'); return; }
+  if (currentRole === 'seller' && !id_number) { showAuthError('Personal ID is required for sellers'); return; }
+
+  const btn = document.getElementById('registerBtn');
+  btn.textContent = 'Creating account...'; btn.disabled = true;
+
+  try {
+    const res = await api('POST', '/auth/register', {
+      full_name: `${first} ${last}`, phone, password,
+      role: currentRole, id_number: id_number || undefined,
+    });
+    accessToken = res.data.tokens.access;
+    localStorage.setItem('access_token', accessToken);
+    currentUser = res.data.user;
+    updateNavForUser();
+    closeAuth();
+    showToast(`Welcome, ${first}! Account created successfully.`, 'success');
+    if (currentRole === 'seller') { showPage('seller'); initSellerProfile(); }
+    else { showPage('buyer'); initBuyerProfile(); }
+  } catch (err) {
+    showAuthError(err.message);
+  } finally {
+    btn.textContent = 'Create Account'; btn.disabled = false;
+  }
+}
+
+function doLogout() {
+  accessToken = null;
+  currentUser = null;
+  localStorage.removeItem('access_token');
+  document.getElementById('guestActions').classList.remove('hidden');
+  document.getElementById('userActions').classList.add('hidden');
+  showPage('home');
+  showToast('Signed out successfully');
+}
+
+function updateNavForUser() {
+  document.getElementById('guestActions').classList.add('hidden');
+  document.getElementById('userActions').classList.remove('hidden');
+  document.getElementById('headerName').textContent = currentUser.full_name.split(' ')[0];
+}
+
+function showProfile() {
+  if (!currentUser) { openAuth('login'); return; }
+  if (currentUser.role === 'admin') { showPage('admin'); initAdmin(); }
+  else if (currentUser.role === 'seller') { showPage('seller'); initSellerProfile(); }
+  else { showPage('buyer'); initBuyerProfile(); }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+// ═══════════════════════════════════════════════════
+// BUYER PROFILE
+// ═══════════════════════════════════════════════════
+async function initBuyerProfile() {
+  document.getElementById('buyerAvatar').textContent = currentUser.full_name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('buyerName').textContent = currentUser.full_name;
+  showBuyerTab('dashboard', document.querySelector('#page-buyer .p-nav'));
+}
+
+async function showBuyerTab(tab, el) {
+  document.querySelectorAll('#page-buyer .p-nav').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const m = document.getElementById('buyerMain');
+  m.innerHTML = '<div class="loading"><div class="spinner"></div> Loading...</div>';
+
+  if (tab === 'dashboard') {
+    try {
+      const [bidsRes] = await Promise.all([api('GET', '/auctions/my/bids')]);
+      const bids = bidsRes.data || [];
+      const winning = bids.filter(b => b.is_winning && b.auction_status === 'live').length;
+      const outbid = bids.filter(b => !b.is_winning && b.auction_status === 'live').length;
+      m.innerHTML = `
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-label">ACTIVE BIDS</div><div class="kpi-val red">${bids.filter(b=>b.auction_status==='live').length}</div></div>
+          <div class="kpi"><div class="kpi-label">WINNING</div><div class="kpi-val green">${winning}</div></div>
+          <div class="kpi"><div class="kpi-label">OUTBID</div><div class="kpi-val orange">${outbid}</div></div>
+          <div class="kpi"><div class="kpi-label">TOTAL BIDS</div><div class="kpi-val">${bids.length}</div></div>
+        </div>
+        <div class="pcard">
+          <div class="pcard-title">Recent Bids</div>
+          ${bids.length === 0 ? '<div class="empty">No bids yet — <a style="color:var(--blue);cursor:pointer" onclick="showPage(\'home\')">browse auctions</a></div>' :
+          `<table class="dtable"><thead><tr><th>Car</th><th>Your Bid</th><th>Current</th><th>Status</th><th>Ends</th></tr></thead><tbody>
+          ${bids.slice(0,10).map(b=>`<tr>
+            <td><strong>${b.make} ${b.model} ${b.year}</strong></td>
+            <td style="font-family:var(--mono);font-weight:700">₾${parseFloat(b.amount).toLocaleString()}</td>
+            <td style="font-family:var(--mono)">₾${parseFloat(b.current_price).toLocaleString()}</td>
+            <td><span class="pill ${b.is_winning?'pill-won':'pill-rejected'}">${b.is_winning?'WINNING':'OUTBID'}</span></td>
+            <td style="font-family:var(--mono);font-size:10px;color:var(--red)">${fmtTimer(new Date(b.end_time))}</td>
+          </tr>`).join('')}
+          </tbody></table>`}
+        </div>`;
+    } catch(err) { m.innerHTML = `<div class="empty">Error: ${err.message}</div>`; }
+
+  } else if (tab === 'bids') {
+    try {
+      const res = await api('GET', '/auctions/my/bids');
+      const bids = res.data || [];
+      m.innerHTML = `<div class="pcard"><div class="pcard-title">All Active Bids (${bids.filter(b=>b.auction_status==='live').length})</div>
+        ${bids.length === 0 ? '<div class="empty">No bids yet</div>' :
+        `<table class="dtable"><thead><tr><th>Car</th><th>Your Bid</th><th>Current Price</th><th>Status</th><th>Ends In</th><th></th></tr></thead><tbody>
+        ${bids.map(b=>`<tr>
+          <td><strong>${b.make} ${b.model} ${b.year}</strong><br><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">${b.lot_number||'—'}</span></td>
+          <td style="font-family:var(--mono);font-weight:700">₾${parseFloat(b.amount).toLocaleString()}</td>
+          <td style="font-family:var(--mono)">₾${parseFloat(b.current_price).toLocaleString()}</td>
+          <td><span class="pill ${b.is_winning?'pill-won':'pill-rejected'}">${b.is_winning?'WINNING':'OUTBID'}</span></td>
+          <td style="font-family:var(--mono);font-size:10px;color:var(--red)">${fmtTimer(new Date(b.end_time))}</td>
+          <td><button class="btn btn-red btn-xs" onclick="openAuction('${b.auction_id}')">Bid</button></td>
+        </tr>`).join('')}
+        </tbody></table>`}
+      </div>`;
+    } catch(err) { m.innerHTML = `<div class="empty">Error: ${err.message}</div>`; }
+
+  } else if (tab === 'watchlist') {
+    try {
+      const res = await api('GET', '/auctions/my/watchlist');
+      const items = res.data || [];
+      m.innerHTML = `<div class="pcard"><div class="pcard-title">Watchlist (${items.length})</div>
+        ${items.length === 0 ? '<div class="empty">Nothing saved yet. Click 🤍 on any car to save it.</div>' :
+        `<table class="dtable"><thead><tr><th>Car</th><th>Current Bid</th><th>Status</th><th>Ends In</th><th></th></tr></thead><tbody>
+        ${items.map(w=>`<tr>
+          <td><strong>${w.make} ${w.model} ${w.year}</strong><br><span style="font-size:10px;color:var(--text3)">${w.location_city}</span></td>
+          <td style="font-family:var(--mono);font-weight:700">₾${parseFloat(w.current_price).toLocaleString()}</td>
+          <td><span class="pill pill-${w.status}">${w.status.toUpperCase()}</span></td>
+          <td style="font-family:var(--mono);font-size:10px;color:var(--red)">${fmtTimer(new Date(w.end_time))}</td>
+          <td><button class="btn btn-red btn-xs" onclick="openAuction('${w.id}')">Bid</button></td>
+        </tr>`).join('')}
+        </tbody></table>`}
+      </div>`;
+    } catch(err) { m.innerHTML = `<div class="empty">Error: ${err.message}</div>`; }
+
+  } else if (tab === 'settings') {
+    m.innerHTML = `<div class="pcard"><div class="pcard-title">Account Settings</div>
+      <div class="form-2col" style="max-width:500px">
+        <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" value="${currentUser.full_name}" id="setName"></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" value="${currentUser.phone}" disabled style="background:var(--gray)"></div>
+        <div class="form-group"><label class="form-label">Language</label>
+          <select class="form-select" id="setLang">
+            <option value="ka" ${currentUser.lang_pref==='ka'?'selected':''}>Georgian (ქართული)</option>
+            <option value="ru" ${currentUser.lang_pref==='ru'?'selected':''}>Russian (Русский)</option>
+            <option value="en" ${currentUser.lang_pref==='en'?'selected':''}>English</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Bank Account (for refunds)</label><input class="form-input" id="setBankAccount" value="${currentUser.bank_account||''}" placeholder="BOG/TBC account"></div>
+      </div>
+      <button class="btn btn-primary btn-md" onclick="saveSettings()">Save Changes</button>
+    </div>`;
+  } else {
+    m.innerHTML = `<div class="pcard"><div class="pcard-title">${tab}</div><div class="empty">Coming soon</div></div>`;
+  }
+}
+
+async function saveSettings() {
+  try {
+    await api('PATCH', '/auth/profile', {
+      full_name: document.getElementById('setName')?.value,
+      lang_pref: document.getElementById('setLang')?.value,
+      bank_account: document.getElementById('setBankAccount')?.value,
+    });
+    showToast('Settings saved!', 'success');
+  } catch(err) { showToast('Error: ' + err.message, 'error'); }
+}
+
+// ═══════════════════════════════════════════════════
+// SELLER PROFILE
+// ═══════════════════════════════════════════════════
+async function initSellerProfile() {
+  document.getElementById('sellerAvatar').textContent = currentUser.full_name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('sellerName').textContent = currentUser.full_name;
+  showSellerTab('dashboard', document.querySelector('#page-seller .p-nav'));
+}
+
+async function showSellerTab(tab, el) {
+  document.querySelectorAll('#page-seller .p-nav').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const m = document.getElementById('sellerMain');
+  m.innerHTML = '<div class="loading"><div class="spinner"></div> Loading...</div>';
+
+  if (tab === 'dashboard') {
+    try {
+      const res = await api('GET', '/cars/my');
+      const cars = res.data || [];
+      const live = cars.filter(c=>c.auction_status==='live').length;
+      const pending = cars.filter(c=>c.status==='pending').length;
+      const sold = cars.filter(c=>c.auction_status==='ended').length;
+      m.innerHTML = `
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-label">LIVE LISTINGS</div><div class="kpi-val red">${live}</div></div>
+          <div class="kpi"><div class="kpi-label">PENDING REVIEW</div><div class="kpi-val orange">${pending}</div></div>
+          <div class="kpi"><div class="kpi-label">SOLD</div><div class="kpi-val green">${sold}</div></div>
+          <div class="kpi"><div class="kpi-label">TOTAL LISTED</div><div class="kpi-val">${cars.length}</div></div>
+        </div>
+        <div class="pcard" style="background:linear-gradient(135deg,var(--blue),var(--blue3));color:#fff;border:none">
+          <div style="display:flex;gap:28px;align-items:center">
+            <div style="text-align:center"><div style="font-size:24px;font-weight:800;color:#f9c74f;font-family:var(--mono)">₾70</div><div style="font-size:10px;opacity:0.7;text-transform:uppercase;letter-spacing:1px">Per Listing</div></div>
+            <div style="width:1px;background:rgba(255,255,255,0.2);height:40px"></div>
+            <div style="text-align:center"><div style="font-size:24px;font-weight:800;color:#f9c74f;font-family:var(--mono)">₾0</div><div style="font-size:10px;opacity:0.7;text-transform:uppercase;letter-spacing:1px">Seller Commission</div></div>
+            <div style="width:1px;background:rgba(255,255,255,0.2);height:40px"></div>
+            <div style="text-align:center"><div style="font-size:24px;font-weight:800;color:#f9c74f;font-family:var(--mono)">100%</div><div style="font-size:10px;opacity:0.7;text-transform:uppercase;letter-spacing:1px">You Keep</div></div>
+          </div>
+        </div>
+        <div class="pcard"><div class="pcard-title">My Listings
+          <button class="btn btn-primary btn-sm" onclick="showSellerTab('upload',document.querySelectorAll('#page-seller .p-nav')[2])">+ List Car</button>
+        </div>
+        ${cars.length === 0 ? '<div class="empty">No listings yet. <a style="color:var(--blue);cursor:pointer" onclick="showSellerTab(\'upload\',document.querySelectorAll(\'#page-seller .p-nav\')[2])">List your first car →</a></div>' :
+        `<table class="dtable"><thead><tr><th>Car</th><th>Start Price</th><th>Current Bid</th><th>Bids</th><th>Status</th><th>Ends</th></tr></thead><tbody>
+        ${cars.map(c=>`<tr>
+          <td><strong>${c.make} ${c.model} ${c.year}</strong><br><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">${c.lot_number||'Pending lot'}</span></td>
+          <td style="font-family:var(--mono)">₾${parseFloat(c.start_price||0).toLocaleString()}</td>
+          <td style="font-family:var(--mono);font-weight:700;color:var(--blue)">₾${parseFloat(c.current_price||c.start_price||0).toLocaleString()}</td>
+          <td style="font-family:var(--mono)">${c.bid_count||0}</td>
+          <td><span class="pill pill-${c.auction_status||c.status}">${(c.auction_status||c.status).toUpperCase()}</span></td>
+          <td style="font-family:var(--mono);font-size:10px;color:var(--red)">${c.end_time?fmtTimer(new Date(c.end_time)):'—'}</td>
+        </tr>`).join('')}
+        </tbody></table>`}
+        </div>`;
+    } catch(err) { m.innerHTML = `<div class="empty">Error: ${err.message}</div>`; }
+
+  } else if (tab === 'upload') {
+    m.innerHTML = `<div class="pcard"><div class="pcard-title">List a New Car</div>
+      <div style="background:linear-gradient(135deg,var(--blue),var(--blue3));color:#fff;border-radius:8px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:24px">🚗</span>
+        <div><div style="font-size:13px;font-weight:700;color:#f9c74f;margin-bottom:2px">Listing Fee: ₾70 per vehicle</div>
+        <div style="font-size:11px;opacity:0.8">Charged after admin approval. Refunded if rejected. You keep 100% of the sale.</div></div>
+      </div>
+      <div class="dropzone" onclick="document.getElementById('photoInput').click()">
+        <div class="dropzone-icon">📸</div>
+        <div class="dropzone-title">Upload Car Photos</div>
+        <div class="dropzone-sub">Minimum 5 photos required · JPG or PNG · Max 10MB each</div>
+        <input type="file" id="photoInput" multiple accept="image/*" style="display:none" onchange="updatePhotoCount(this)">
+      </div>
+      <div id="photoCount" style="font-size:12px;color:var(--text3);margin-bottom:14px;margin-top:-6px">0 photos selected (minimum 5 required)</div>
+      <div class="form-3col">
+        <div class="form-group"><label class="form-label">Make *</label>
+          <select class="form-select" id="cMake">
+            <option value="">Select...</option>
+            <option>Toyota</option><option>BMW</option><option>Mercedes-Benz</option><option>Audi</option>
+            <option>Lexus</option><option>Hyundai</option><option>Kia</option><option>Honda</option>
+            <option>Ford</option><option>Chevrolet</option><option>Volkswagen</option><option>Nissan</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Model *</label><input class="form-input" id="cModel" placeholder="e.g. Camry XLE"></div>
+        <div class="form-group"><label class="form-label">Year *</label><input class="form-input" type="number" id="cYear" placeholder="2019" min="1990" max="2025"></div>
+        <div class="form-group"><label class="form-label">Mileage (km) *</label><input class="form-input" type="number" id="cMileage" placeholder="78000"></div>
+        <div class="form-group"><label class="form-label">Fuel Type *</label>
+          <select class="form-select" id="cFuel">
+            <option value="petrol">Petrol</option><option value="diesel">Diesel</option>
+            <option value="hybrid">Hybrid</option><option value="electric">Electric</option><option value="lpg">LPG</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Transmission *</label>
+          <select class="form-select" id="cTrans"><option value="automatic">Automatic</option><option value="manual">Manual</option><option value="cvt">CVT</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Drive Type</label>
+          <select class="form-select" id="cDrive"><option value="fwd">FWD</option><option value="rwd">RWD</option><option value="awd">AWD</option><option value="4wd">4WD</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Engine Size</label><input class="form-input" id="cEngine" placeholder="2.0L"></div>
+        <div class="form-group"><label class="form-label">Color</label>
+          <select class="form-select" id="cColor">
+            <option>White</option><option>Black</option><option>Silver</option><option>Grey</option>
+            <option>Blue</option><option>Red</option><option>Beige</option><option>Brown</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Body Type</label>
+          <select class="form-select" id="cBody">
+            <option value="sedan">Sedan</option><option value="suv">SUV</option><option value="hatchback">Hatchback</option>
+            <option value="coupe">Coupe</option><option value="minivan">Minivan</option><option value="truck">Truck</option><option value="wagon">Wagon</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Condition *</label>
+          <select class="form-select" id="cCondition">
+            <option value="excellent">Excellent</option><option value="good">Good</option>
+            <option value="fair">Fair</option><option value="damaged">Damaged</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Customs Status</label>
+          <select class="form-select" id="cCustoms"><option value="Cleared">Cleared ✓</option><option value="Not Cleared">Not Cleared</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">VIN Number</label><input class="form-input" id="cVin" placeholder="17 characters" maxlength="17"></div>
+        <div class="form-group"><label class="form-label">Location</label>
+          <select class="form-select" id="cLocation">
+            <option>Tbilisi</option><option>Kutaisi</option><option>Batumi</option><option>Rustavi</option><option>Gori</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Auction Duration</label>
+          <select class="form-select" id="cDuration"><option value="24">24 hours</option><option value="48">48 hours</option><option value="72" selected>72 hours</option><option value="168">7 days</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Starting Bid Price (₾) *</label><input class="form-input" type="number" id="cPrice" placeholder="e.g. 25000" style="max-width:200px"></div>
+      <div class="form-group"><label class="form-label">Reserve Price (₾) <span style="color:var(--text3);font-weight:400">(optional — minimum you'll accept)</span></label><input class="form-input" type="number" id="cReserve" placeholder="e.g. 28000" style="max-width:200px"></div>
+      <div class="form-group"><label class="form-label">Description (Georgian / Russian / English) *</label>
+        <textarea class="form-input" id="cDescKa" rows="4" style="resize:vertical" placeholder="Describe the car condition, service history, any issues, modifications..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn btn-primary btn-lg" id="submitCarBtn" onclick="submitCar()">Submit for Review</button>
+        <span style="font-size:11px;color:var(--text3)">Admin reviews within 24h · ₾70 fee charged on approval</span>
+      </div>
+    </div>`;
+  } else if (tab === 'settings') {
+    m.innerHTML = `<div class="pcard"><div class="pcard-title">Seller Account Settings</div>
+      <div class="form-2col" style="max-width:500px">
+        <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" value="${currentUser.full_name}" id="setName"></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" value="${currentUser.phone}" disabled style="background:var(--gray)"></div>
+        <div class="form-group"><label class="form-label">Bank Account (for payouts)</label><input class="form-input" id="setBankAccount" value="${currentUser.bank_account||''}" placeholder="BOG or TBC account number"></div>
+        <div class="form-group"><label class="form-label">Language</label>
+          <select class="form-select" id="setLang">
+            <option value="ka">Georgian (ქართული)</option>
+            <option value="ru">Russian (Русский)</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-md" onclick="saveSettings()">Save Changes</button>
+    </div>`;
+  }
+}
+
+function updatePhotoCount(input) {
+  const count = input.files.length;
+  const el = document.getElementById('photoCount');
+  el.textContent = `${count} photo${count !== 1 ? 's' : ''} selected ${count < 5 ? '(need ' + (5-count) + ' more)' : '✓ Ready'}`;
+  el.style.color = count >= 5 ? 'var(--green)' : 'var(--red)';
+}
+
+async function submitCar() {
+  const photos = document.getElementById('photoInput').files;
+  if (photos.length < 5) { showToast('Please upload at least 5 photos', 'error'); return; }
+
+  const make = document.getElementById('cMake').value;
+  const model = document.getElementById('cModel').value;
+  const year = document.getElementById('cYear').value;
+  const mileage = document.getElementById('cMileage').value;
+  const price = document.getElementById('cPrice').value;
+  const descKa = document.getElementById('cDescKa').value;
+
+  if (!make || !model || !year || !mileage || !price || !descKa) {
+    showToast('Please fill in all required fields', 'error'); return;
+  }
+
+  const btn = document.getElementById('submitCarBtn');
+  btn.textContent = 'Submitting...'; btn.disabled = true;
+
+  try {
+    const formData = new FormData();
+    formData.append('make', make);
+    formData.append('model', model);
+    formData.append('year', year);
+    formData.append('mileage_km', mileage);
+    formData.append('fuel_type', document.getElementById('cFuel').value);
+    formData.append('transmission', document.getElementById('cTrans').value);
+    formData.append('drive_type', document.getElementById('cDrive').value);
+    formData.append('engine_size', document.getElementById('cEngine').value);
+    formData.append('color', document.getElementById('cColor').value);
+    formData.append('body_type', document.getElementById('cBody').value);
+    formData.append('condition_rating', document.getElementById('cCondition').value);
+    formData.append('customs_status', document.getElementById('cCustoms').value);
+    formData.append('vin', document.getElementById('cVin').value);
+    formData.append('location_city', document.getElementById('cLocation').value);
+    formData.append('description_ka', descKa);
+    formData.append('start_price', price);
+    formData.append('reserve_price', document.getElementById('cReserve').value || '');
+    formData.append('auction_duration_hours', document.getElementById('cDuration').value);
+    for (let i = 0; i < photos.length; i++) formData.append('photos', photos[i]);
+
+    await api('POST', '/cars', formData, true);
+    showToast('🎉 Car submitted! Admin will review within 24 hours.', 'success');
+    showSellerTab('listings', document.querySelectorAll('#page-seller .p-nav')[1]);
+  } catch(err) {
+    showToast('Error: ' + err.message, 'error');
+  } finally {
+    btn.textContent = 'Submit for Review'; btn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// ADMIN PANEL
+// ═══════════════════════════════════════════════════
+async function initAdmin() {
+  showAdminSec('dashboard', document.querySelector('.admin-nav'));
+  // Load pending count for badge
+  try {
+    const res = await api('GET', '/admin/cars/pending');
+    document.getElementById('reqCount').textContent = res.count || 0;
+  } catch {}
+}
+
+async function showAdminSec(sec, el) {
+  document.querySelectorAll('.admin-nav').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const target = document.getElementById('as-' + sec);
+  if (target) { target.classList.add('active'); await renderAdminSec(sec, target); }
+}
+
+async function renderAdminSec(sec, el) {
+  el.innerHTML = '<div class="loading"><div class="spinner"></div> Loading...</div>';
+
+  if (sec === 'dashboard') {
+    try {
+      const res = await api('GET', '/admin/dashboard');
+      const d = res.data;
+      el.innerHTML = `
+        <div class="admin-page-title">Dashboard</div>
+        <div class="admin-page-sub">Real-time platform overview</div>
+        <div class="admin-kpi-row">
+          <div class="admin-kpi red"><div class="ak-label">LIVE AUCTIONS</div><div class="ak-val" style="color:var(--red)">${d.live_auctions}</div><div class="ak-sub">Currently active</div></div>
+          <div class="admin-kpi orange"><div class="ak-label">PENDING REQUESTS</div><div class="ak-val">${d.pending_requests}</div><div class="ak-sub">Need review</div></div>
+          <div class="admin-kpi green"><div class="ak-label">TODAY'S REVENUE</div><div class="ak-val" style="color:var(--green)">₾${parseFloat(d.todays_revenue||0).toLocaleString()}</div><div class="ak-sub">Fees + commissions</div></div>
+          <div class="admin-kpi"><div class="ak-label">TOTAL USERS</div><div class="ak-val">${d.total_users.toLocaleString()}</div><div class="ak-sub">Registered</div></div>
+        </div>
+        <div class="acard"><div class="acard-title">Quick Actions</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-md" onclick="showAdminSec('requests',document.querySelectorAll('.admin-nav')[2])">📋 Review Car Requests (${d.pending_requests})</button>
+            <button class="btn btn-outline btn-md" onclick="showAdminSec('live',document.querySelectorAll('.admin-nav')[1])">🔴 Monitor Live Auctions (${d.live_auctions})</button>
+            <button class="btn btn-outline btn-md" onclick="showAdminSec('users',document.querySelectorAll('.admin-nav')[3])">👥 Manage Users</button>
+          </div>
+        </div>`;
+    } catch(err) { el.innerHTML = `<div class="empty">Error: ${err.message}</div>`; }
+
+  } else if (sec === 'live') {
+    try {
+      const res = await api('GET', '/admin/auctions/live');
+      const auctions = res.data || [];
+      el.innerHTML = `
+        <div class="admin-page-title">Live Auctions</div>
+        <div class="admin-page-sub">Monitoring ${auctions.length} active auction(s)</div>
+        <div class="acard">
+          ${auctions.length === 0 ? '<div class="empty">No live auctions right now</div>' :
+          `<table class="dtable"><thead><tr><th></th><th>Car</th><th>Seller</th><th>Bids</th><th>Current Bid</th><th>Ends In</th><th>Views</th><th></th></tr></thead><tbody>
+          ${auctions.map(a=>`<tr>
+            <td><span class="live-dot"></span></td>
+            <td><strong>${a.make} ${a.model} ${a.year}</strong><br><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">${a.lot_number||'—'} · ${a.location_city}</span></td>
+            <td style="font-size:12px">${a.seller_name}</td>
+            <td style="font-family:var(--mono);font-weight:700">${a.bid_count}</td>
+            <td style="font-family:var(--mono);font-weight:700;color:var(--blue)">₾${parseFloat(a.current_price).toLocaleString()}</td>
+            <td style="font-family:var(--mono);font-size:10px;color:var(--red)">${fmtTimer(new Date(a.end_time))}</td>
+            <td style="font-family:var(--mono);font-size:11px">${a.view_count||0}</td>
+            <td><button class="btn btn-gray btn-xs" onclick="openAuction('${a.id}')">View</button></td>
+          </tr>`).join('')}
+          </tbody></table>`}
+        </div>`;
+    } catch(err) { el.innerHTML = `<div class="empty">Error: ${err.message}</div>`; }
+
+  } else if (sec === 'requests') {
+    try {
+      const res = await api('GET', '/admin/cars/pending');
+      const cars = res.data || [];
+      document.getElementById('reqCount').textContent = cars.length;
+      el.innerHTML = `
+        <div class="admin-page-title">Car Upload Requests</div>
+        <div class="admin-page-sub">${cars.length} car(s) waiting for review</div>
+        <div id="reqList">
+          ${cars.length === 0 ? '<div class="acard"><div class="empty">✅ All caught up — no pending requests!</div></div>' :
+          cars.map(c=>`<div class="req-card" id="req-${c.id}">
+            <div class="req-img">🚗</div>
+            <div class="req-info">
+              <div class="req-name">${c.make} ${c.model} ${c.year}</div>
+              <div class="req-meta">${parseInt(c.mileage_km).toLocaleString()} km · ${c.fuel_type} · ${c.transmission} · ${c.condition_rating}</div>
+              <div style="font-size:12px;color:var(--text2);margin-bottom:6px">👤 <strong>${c.seller_name}</strong> · 📞 ${c.seller_phone} · Submitted: ${new Date(c.created_at).toLocaleDateString()}</div>
+              <div>
+                <span class="req-tag">Starting: ₾${parseFloat(c.start_price||0).toLocaleString()}</span>
+                <span class="req-tag">🛃 ${c.customs_status||'Cleared'}</span>
+                <span class="req-tag paid">✓ ₾70 listing fee paid</span>
+                <span class="req-tag">${c.location_city}</span>
+              </div>
+              ${c.description_ka ? `<div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5">${c.description_ka.substring(0,120)}...</div>` : ''}
+            </div>
+            <div class="req-actions">
+              <button class="btn btn-green btn-sm" onclick="approvecar('${c.id}')">✓ Approve</button>
+              <button class="btn btn-red btn-sm" onclick="rejectcar('${c.id}')">✗ Reject</button>
+            </div>
+          </div>`).join('')}
+        </div>`;
+    } catch(err) { el.innerHTML = `<div class="empty">Error: ${err.message}</div>`; }
+
+  } else if (sec === 'users') {
+    try {
+      const res = await api('GET', '/admin/users');
+      const users = res.data || [];
+      el.innerHTML = `
+        <div class="admin-page-title">Users</div>
+        <div class="admin-page-sub">${users.length} registered users</div>
+        <div class="acard">
+          <table class="dtable"><thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead><tbody>
+          ${users.map(u=>`<tr>
+            <td><strong>${u.full_name}</strong></td>
+            <td><span class="pill pill-${u.role}">${u.role.toUpperCase()}</span></td>
+            <td style="font-family:var(--mono);font-size:11px">${u.phone}</td>
+            <td><span class="pill pill-${u.status==='verified'?'approved':u.status==='suspended'?'rejected':'pending'}">${u.status.toUpperCase()}</span></td>
+            <td style="font-family:var(--mono);font-size:10px">${new Date(u.created_at).toLocaleDateString()}</td>
+            <td>
+              ${u.status !== 'verified' ? `<button class="btn btn-green btn-xs" onclick="updateUser('${u.id}','verified')">Verify</button> ` : ''}
+              ${u.status !== 'suspended' ? `<button class="btn btn-red btn-xs" onclick="updateUser('${u.id}','suspended')">Suspend</button>` : `<button class="btn btn-gray btn-xs" onclick="updateUser('${u.id}','verified')">Restore</button>`}
+            </td>
+          </tr>`).join('')}
+          </tbody></table>
+        </div>`;
+    } catch(err) { el.innerHTML = `<div class="empty">Error: ${err.message}</div>`; }
+
+  } else if (sec === 'revenue') {
+    try {
+      const res = await api('GET', '/admin/revenue');
+      const r = res.data;
+      el.innerHTML = `
+        <div class="admin-page-title">Revenue</div>
+        <div class="admin-page-sub">Platform earnings from listing fees and commissions</div>
+        <div class="admin-kpi-row" style="grid-template-columns:repeat(3,1fr)">
+          <div class="admin-kpi"><div class="ak-label">TODAY</div><div class="ak-val">₾${parseFloat(r.today||0).toLocaleString()}</div></div>
+          <div class="admin-kpi green"><div class="ak-label">THIS MONTH</div><div class="ak-val" style="color:var(--green)">₾${parseFloat(r.this_month||0).toLocaleString()}</div></div>
+          <div class="admin-kpi"><div class="ak-label">ALL TIME</div><div class="ak-val">₾${parseFloat(r.all_time||0).toLocaleString()}</div></div>
+        </div>
+        <div class="acard"><div class="acard-title">Breakdown</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div style="background:var(--blue-light);border:1px solid var(--blue3);border-radius:8px;padding:16px">
+              <div style="font-size:10px;color:var(--blue);font-family:var(--mono);margin-bottom:4px">₾70 LISTING FEES</div>
+              <div style="font-size:28px;font-weight:700;color:var(--blue);font-family:var(--mono)">₾${parseFloat(r.listing_fees||0).toLocaleString()}</div>
+            </div>
+            <div style="background:var(--green-light);border:1px solid rgba(26,122,60,0.2);border-radius:8px;padding:16px">
+              <div style="font-size:10px;color:var(--green);font-family:var(--mono);margin-bottom:4px">2% COMMISSIONS</div>
+              <div style="font-size:28px;font-weight:700;color:var(--green);font-family:var(--mono)">₾${parseFloat(r.commissions||0).toLocaleString()}</div>
+            </div>
+          </div>
+        </div>`;
+    } catch(err) { el.innerHTML = `<div class="empty">Error: ${err.message}</div>`; }
+
+  } else if (sec === 'transactions') {
+    try {
+      const res = await api('GET', '/admin/transactions');
+      const txns = res.data || [];
+      el.innerHTML = `
+        <div class="admin-page-title">Transactions</div>
+        <div class="admin-page-sub">All payment records</div>
+        <div class="acard">
+          <table class="dtable"><thead><tr><th>Date</th><th>Type</th><th>Car</th><th>Payer</th><th>Amount</th><th>Status</th></tr></thead><tbody>
+          ${txns.length === 0 ? '<tr><td colspan="6"><div class="empty">No transactions yet</div></td></tr>' :
+          txns.map(t=>`<tr>
+            <td style="font-family:var(--mono);font-size:10px">${new Date(t.created_at).toLocaleDateString()}</td>
+            <td><span class="pill ${t.type==='listing_fee'?'pill-pending':'pill-won'}">${t.type.replace('_',' ').toUpperCase()}</span></td>
+            <td style="font-size:12px">${t.make||''} ${t.model||''} ${t.year||''}</td>
+            <td style="font-size:12px">${t.payer_name}</td>
+            <td style="font-family:var(--mono);font-weight:700;color:var(--gold)">₾${parseFloat(t.amount).toLocaleString()}</td>
+            <td><span class="pill pill-${t.status==='paid'?'approved':t.status==='pending'?'pending':'rejected'}">${t.status.toUpperCase()}</span></td>
+          </tr>`).join('')}
+          </tbody></table>
+        </div>`;
+    } catch(err) { el.innerHTML = `<div class="empty">Error: ${err.message}</div>`; }
+
+  } else if (sec === 'settings') {
+    try {
+      const res = await api('GET', '/admin/settings');
+      const s = res.data;
+      el.innerHTML = `
+        <div class="admin-page-title">Platform Settings</div>
+        <div class="admin-page-sub">Configure fees and platform behaviour</div>
+        <div class="acard"><div class="acard-title">Fee Configuration</div>
+          <div class="form-2col" style="max-width:500px">
+            ${Object.entries(s).map(([key,val])=>`
+            <div class="form-group">
+              <label class="form-label">${key.replace(/_/g,' ').toUpperCase()}</label>
+              <input class="form-input" id="setting-${key}" value="${val.value}" placeholder="${val.description||''}">
+            </div>`).join('')}
+          </div>
+          <button class="btn btn-primary btn-md" onclick="saveAllSettings()">Save All Settings</button>
+        </div>`;
+    } catch(err) { el.innerHTML = `<div class="empty">Error: ${err.message}</div>`; }
+  }
+}
+
+async function approvecar(id) {
+  if (!confirm('Approve this car? It will go LIVE immediately.')) return;
+  try {
+    const res = await api('POST', `/admin/cars/${id}/approve`);
+    document.getElementById('req-' + id)?.remove();
+    showToast(`✅ Car approved! LOT: ${res.data?.lot_number}`, 'success');
+    const cnt = document.getElementById('reqCount');
+    cnt.textContent = Math.max(0, parseInt(cnt.textContent) - 1);
+  } catch(err) { showToast('Error: ' + err.message, 'error'); }
+}
+
+async function rejectcar(id) {
+  const reason = prompt('Rejection reason (required):');
+  if (!reason) return;
+  try {
+    await api('POST', `/admin/cars/${id}/reject`, { reason });
+    document.getElementById('req-' + id)?.remove();
+    showToast('Car rejected. Seller notified. ₾70 refund queued.', 'info');
+    const cnt = document.getElementById('reqCount');
+    cnt.textContent = Math.max(0, parseInt(cnt.textContent) - 1);
+  } catch(err) { showToast('Error: ' + err.message, 'error'); }
+}
+
+async function updateUser(id, status) {
+  try {
+    await api('PATCH', `/admin/users/${id}/status`, { status });
+    showToast(`User status updated to ${status}`, 'success');
+    showAdminSec('users', document.querySelector('.admin-nav.active'));
+  } catch(err) { showToast('Error: ' + err.message, 'error'); }
+}
+
+async function saveAllSettings() {
+  const inputs = document.querySelectorAll('[id^="setting-"]');
+  for (const input of inputs) {
+    const key = input.id.replace('setting-', '');
+    try { await api('PATCH', '/admin/settings', { key, value: input.value }); } catch {}
+  }
+  showToast('All settings saved!', 'success');
+}
+
+// ═══════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.getElementById('page-' + p)?.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function setNav(el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function setFilter(status) {
+  document.getElementById('fStatus').value = status;
+  loadAuctions();
+}
+
+function clearFilters() {
+  ['fMake','fModel','fFuel','fTrans','fBody','fEngine','fStatus','fPriceFrom','fPriceTo','fYearFrom','fYearTo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const modelSel = document.getElementById('fModel');
+  if (modelSel) { modelSel.disabled = true; modelSel.style.opacity = '0.5'; modelSel.innerHTML = '<option value="">Select Make First</option>'; }
+  loadAuctions();
+}
+
+function setView(v, btn) {
+  viewMode = v;
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadAuctions();
+}
+
+function toggleSb(header) {
+  const body = header.nextElementSibling;
+  const arrow = header.querySelector('span');
+  if (body) {
+    body.style.display = body.style.display === 'none' ? 'block' : 'none';
+    if (arrow) arrow.textContent = body.style.display === 'none' ? '▶' : '▼';
+  }
+}
+
+function doSearch() {
+  // Basic search — reload with make filter matching search term
+  const q = document.getElementById('globalSearch').value.trim();
+  if (q) { document.getElementById('fMake').value = q; loadAuctions(); }
+}
+
+function showToast(msg, type = '') {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  document.getElementById('toastIcon').textContent = icons[type] || 'ℹ️';
+  document.getElementById('toastMsg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.className = 'toast show ' + type;
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// ═══════════════════════════════════════════════════
+// START
+// ═══════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
