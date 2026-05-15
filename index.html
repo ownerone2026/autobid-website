@@ -810,9 +810,17 @@ header{background:#fff;border-bottom:2px solid var(--blue);position:sticky;top:0
           <div class="form-group"><label class="form-label" data-i18n="lastName">Last Name</label><input class="form-input" id="regLast" data-i18n-placeholder="lastNamePh" placeholder="Last Name"></div>
         </div>
         <div class="form-group"><label class="form-label" data-i18n="phone">Phone Number</label><input class="form-input" id="regPhone" placeholder="+995 5XX XXX XXX"></div>
-        <div class="form-group"><label class="form-label" data-i18n="password">Password</label><input class="form-input" type="password" id="regPass" data-i18n-placeholder="passPh" placeholder="Minimum 8 characters"></div>
+        <div class="form-group"><label class="form-label" data-i18n="password">Password</label><input class="form-input" type="password" id="regPass" data-i18n-placeholder="passPh" placeholder="Minimum 8 characters" oninput="checkPassStrength(this)">
+          <div id="passHint" style="font-size:11px;margin-top:4px;color:var(--text3)"></div>
+        </div>
         <div class="form-group hidden" id="idGroup"><label class="form-label"><span data-i18n="personalId">Personal ID Number</span> <span style="color:var(--red)" data-i18n="requiredForSellers">*required for sellers</span></label><input class="form-input" id="regId" placeholder="01234567890"></div>
         <div class="info-box" id="roleInfoBox" data-i18n-html="buyerInfoBox">🏁 Buyer account is free. You only pay 2% commission when you win an auction.</div>
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;padding:12px;background:var(--gray);border-radius:8px;border:1.5px solid var(--border)">
+          <input type="checkbox" id="agreeTerms" style="width:18px;height:18px;margin-top:1px;accent-color:var(--blue);flex-shrink:0;cursor:pointer">
+          <label for="agreeTerms" style="font-size:12px;color:var(--text2);cursor:pointer;line-height:1.5">
+            <span id="agreeLabel">I have read and agree to the </span><a onclick="closeAuth();showPage('terms')" style="color:var(--blue);font-weight:600;cursor:pointer">Terms of Service</a> <span id="agreeAnd"> and </span><a onclick="closeAuth();showPage('privacy')" style="color:var(--blue);font-weight:600;cursor:pointer">Privacy Policy</a>
+          </label>
+        </div>
         <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center" id="registerBtn" onclick="doRegister()" data-i18n="createAccount">Create Account</button>
         <div class="form-note"><span data-i18n="alreadyHave">Already have an account?</span> <a onclick="switchTab('login')" data-i18n="signIn">Sign In</a></div>
       </div>
@@ -995,7 +1003,7 @@ const TRANSLATIONS = {
     firstNamePh: 'გიორგი', lastNamePh: 'ბერიძე',
     personalId: 'პირადი ნომერი', requiredForSellers: '*გამყიდველებისთვის სავალდებულო',
     createAccount: 'ანგარიშის შექმნა',
-    passPh: 'მინ. 8 სიმბოლო',
+    passPh: 'მინ. 8 სიმბოლო, 1 დიდი ასო',
     buyerInfoBox: '🏁 მყიდველის ანგარიში უფასოა. მხოლოდ 2% საკომისიოს გადაიხდი მოგებისას.',
     sellerInfoBox: '🚗 გამყიდველის ანგარიში: ₾79.99 ერთ განთავსებაზე. გაყიდვის 100% თქვენია.',
     // Toast
@@ -1169,7 +1177,7 @@ const TRANSLATIONS = {
     firstNamePh: 'Гиорги', lastNamePh: 'Беридзе',
     personalId: 'Личный номер', requiredForSellers: '*Обязательно для продавцов',
     createAccount: 'Создать аккаунт',
-    passPh: 'Мин. 8 символов',
+    passPh: 'Мин. 8 символов, 1 заглавная',
     buyerInfoBox: '🏁 Аккаунт покупателя бесплатен. Только 2% комиссии при выигрыше.',
     sellerInfoBox: '🚗 Аккаунт продавца: ₾79.99 за размещение. 100% продажи — ваши.',
     // Toast
@@ -1343,7 +1351,7 @@ const TRANSLATIONS = {
     firstNamePh: 'First Name', lastNamePh: 'Last Name',
     personalId: 'Personal ID Number', requiredForSellers: '*Required for sellers',
     createAccount: 'Create Account',
-    passPh: 'Minimum 8 characters',
+    passPh: 'Min 8 chars, 1 uppercase',
     buyerInfoBox: '🏁 Buyer account is free. You only pay 2% commission when you win an auction.',
     sellerInfoBox: '🚗 Seller account: ₾79.99 per listing. 100% of the sale is yours.',
     // Toast
@@ -3809,6 +3817,25 @@ async function doLogin() {
   }
 }
 
+function checkPassStrength(input) {
+  const val = input.value;
+  const hint = document.getElementById('passHint');
+  if (!hint) return;
+  if (!val) { hint.textContent = ''; return; }
+  const hasLength = val.length >= 8;
+  const hasUpper  = /[A-Z]/.test(val);
+  if (hasLength && hasUpper) {
+    hint.textContent = '✅ ' + (currentLang==='ka'?'პაროლი ძლიერია':currentLang==='ru'?'Пароль надёжный':'Strong password');
+    hint.style.color = 'var(--green)';
+  } else {
+    const missing = [];
+    if (!hasLength) missing.push(currentLang==='ka'?'მინ. 8 სიმბოლო':currentLang==='ru'?'мин. 8 символов':'min 8 chars');
+    if (!hasUpper)  missing.push(currentLang==='ka'?'1 დიდი ასო':currentLang==='ru'?'1 заглавная буква':'1 uppercase letter');
+    hint.textContent = '⚠️ ' + missing.join(' · ');
+    hint.style.color = 'var(--orange)';
+  }
+}
+
 async function doRegister() {
   const first = document.getElementById('regFirst').value.trim();
   const last = document.getElementById('regLast').value.trim();
@@ -3817,8 +3844,18 @@ async function doRegister() {
   const id_number = document.getElementById('regId').value.trim();
 
   if (!first || !last || !phone || !password) { showAuthError('All fields are required'); return; }
-  if (password.length < 8) { showAuthError('Password must be at least 8 characters'); return; }
-  if (currentRole === 'seller' && !id_number) { showAuthError('Personal ID is required for sellers'); return; }
+  if (password.length < 8) {
+    showAuthError(currentLang==='ka'?'პაროლი მინიმუმ 8 სიმბოლო უნდა იყოს':currentLang==='ru'?'Пароль должен содержать минимум 8 символов':'Password must be at least 8 characters');
+    return;
+  }
+  if (!/[A-Z]/.test(password)) {
+    showAuthError(currentLang==='ka'?'პაროლი უნდა შეიცავდეს მინიმუმ 1 დიდ ასოს':currentLang==='ru'?'Пароль должен содержать минимум 1 заглавную букву':'Password must contain at least 1 uppercase letter');
+    return;
+  }
+  if (!document.getElementById('agreeTerms').checked) {
+    showAuthError(currentLang==='ka'?'გთხოვთ დაეთანხმოთ წესებსა და პირობებს':currentLang==='ru'?'Пожалуйста, примите условия использования':'Please agree to the Terms of Service and Privacy Policy');
+    return;
+  }
 
   const btn = document.getElementById('registerBtn');
   btn.textContent = 'Creating account...'; btn.disabled = true;
@@ -4761,5 +4798,253 @@ function showToast(msg, type = '') {
 // ═══════════════════════════════════════════════════
 init();
 </script>
+<!-- ═══════════════════════════════════════════ -->
+<!-- PRIVACY POLICY PAGE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page" id="page-privacy">
+  <div style="max-width:820px;margin:0 auto;padding:40px 20px;font-size:14px;line-height:1.8;color:var(--text2)">
+    <div style="margin-bottom:32px">
+      <h1 style="font-size:28px;font-weight:800;color:var(--text);margin-bottom:8px">კონფიდენციალურობის პოლიტიკა / Privacy Policy / Политика конфиденциальности</h1>
+      <p style="color:var(--text3);font-size:13px">ბოლო განახლება / Last updated / Последнее обновление: May 2026</p>
+    </div>
+
+    <div style="background:var(--blue-light);border-left:4px solid var(--blue);padding:14px 18px;border-radius:0 8px 8px 0;margin-bottom:28px;font-size:13px">
+      AutoBid Georgia-ს მიზანია თქვენი პერსონალური მონაცემების დაცვა. ეს პოლიტიკა განმარტავს, თუ რა ინფორმაციას ვაგროვებთ და როგორ ვიყენებთ.<br>
+      <span style="color:var(--text3)">AutoBid Georgia is committed to protecting your personal data. This policy explains what we collect and how we use it.</span>
+    </div>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">1. ვინ ვართ / Who We Are</h2>
+    <p>AutoBid Georgia არის ონლაინ ავტომობილის აუქციონის პლატფორმა, რომელიც მდებარეობს საქართველოში. ჩვენი ვებსაიტია <strong>autobid.com.ge</strong>. / AutoBid Georgia is an online car auction platform based in Georgia. Our website is <strong>autobid.com.ge</strong>.</p>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">2. რა ინფორმაციას ვაგროვებთ / What We Collect</h2>
+    <p>რეგისტრაციისას ვაგროვებთ: / Upon registration we collect:</p>
+    <ul style="margin:8px 0 8px 20px;display:flex;flex-direction:column;gap:4px">
+      <li>სახელი და გვარი / Full name</li>
+      <li>ტელეფონის ნომერი / Phone number</li>
+      <li>ელ-ფოსტა (სურვილისამებრ) / Email address (optional)</li>
+      <li>პირადი ნომერი (გამყიდველებისთვის) / Personal ID number (sellers only)</li>
+      <li>საბანკო ანგარიში (გამყიდველებისთვის გადახდებისთვის) / Bank account (sellers, for payouts)</li>
+    </ul>
+    <p>პლატფორმის გამოყენებისას ავტომატურად ვაგროვებთ: / During platform use we automatically collect:</p>
+    <ul style="margin:8px 0 8px 20px;display:flex;flex-direction:column;gap:4px">
+      <li>ბიდების ისტორია / Bid history</li>
+      <li>სანახავი მანქანები / Viewed listings</li>
+      <li>IP მისამართი / IP address</li>
+      <li>მოწყობილობის ტიპი და ბრაუზერი / Device type and browser</li>
+    </ul>
+    <p>გამყიდველები ავტვირთავენ: / Sellers upload:</p>
+    <ul style="margin:8px 0 8px 20px;display:flex;flex-direction:column;gap:4px">
+      <li>მანქანის ფოტოები / Car photos</li>
+      <li>მანქანის ტექნიკური მახასიათებლები / Vehicle specifications</li>
+      <li>VIN ნომერი / VIN number</li>
+    </ul>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">3. როგორ ვიყენებთ ინფორმაციას / How We Use Your Data</h2>
+    <ul style="margin:8px 0 8px 20px;display:flex;flex-direction:column;gap:4px">
+      <li>ანგარიშის მართვა / Account management</li>
+      <li>აუქციონის პროცესის წარმართვა / Running the auction process</li>
+      <li>SMS შეტყობინებების გაგზავნა ბიდებზე / Sending SMS notifications for bids</li>
+      <li>გადახდების დამუშავება / Processing payments</li>
+      <li>თაღლითობის პრევენცია / Fraud prevention</li>
+      <li>კანონმდებლობით გათვალისწინებული ვალდებულებების შესრულება / Legal compliance</li>
+    </ul>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">4. სად ინახება მონაცემები / Data Storage</h2>
+    <p>თქვენი მონაცემები ინახება: / Your data is stored on:</p>
+    <ul style="margin:8px 0 8px 20px;display:flex;flex-direction:column;gap:4px">
+      <li><strong>Supabase</strong> — PostgreSQL მონაცემთა ბაზა ლონდონში, EU-West-2 / PostgreSQL database in London, EU-West-2</li>
+      <li><strong>Cloudflare R2</strong> — ფოტოების საცავი / Photo storage</li>
+      <li><strong>Railway</strong> — სერვერი (ოპერატიული მეხსიერება მხოლოდ) / Server (RAM only, no persistent storage)</li>
+    </ul>
+    <p>ყველა კავშირი დაცულია SSL/TLS დაშიფვრით. / All connections are protected by SSL/TLS encryption.</p>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">5. მესამე მხარეები / Third Parties</h2>
+    <p>ჩვენ არ ვყიდით და არ ვაქირავებთ თქვენს მონაცემებს. ჩვენ ვიყენებთ შემდეგ სანდო სერვისებს: / We never sell or rent your data. We use these trusted services:</p>
+    <ul style="margin:8px 0 8px 20px;display:flex;flex-direction:column;gap:4px">
+      <li><strong>GoSMS</strong> — SMS შეტყობინებებისთვის / For SMS notifications</li>
+      <li><strong>BOG/TBC</strong> — გადახდების დასამუშავებლად / For payment processing</li>
+      <li><strong>Cloudflare</strong> — DDoS დაცვა და DNS / DDoS protection and DNS</li>
+    </ul>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">6. თქვენი უფლებები / Your Rights</h2>
+    <ul style="margin:8px 0 8px 20px;display:flex;flex-direction:column;gap:4px">
+      <li>ანგარიშის წაშლა / Delete your account</li>
+      <li>თქვენი მონაცემების ასლის მოთხოვნა / Request a copy of your data</li>
+      <li>მონაცემების კორექტირება / Correct your data</li>
+      <li>SMS შეტყობინებებზე უარის თქმა / Opt out of SMS notifications</li>
+    </ul>
+    <p>ამ უფლებების განსახორციელებლად დაგვიკავშირდით: / To exercise these rights contact us: <strong>info@autobid.com.ge</strong></p>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">7. Cookies</h2>
+    <p>ჩვენ ვიყენებთ მხოლოდ აუცილებელ ქუქი-ფაილებს ავტორიზაციისა და ენის პარამეტრებისთვის. ჩვენ არ ვიყენებთ სარეკლამო ან თვალთვალის ქუქი-ფაილებს. / We use only essential cookies for authentication and language preferences. We do not use advertising or tracking cookies.</p>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">8. კონტაქტი / Contact</h2>
+    <p>კონფიდენციალურობასთან დაკავშირებული კითხვებისთვის: / For privacy related questions:<br>
+    📧 <strong>info@autobid.com.ge</strong><br>
+    🌐 <strong>autobid.com.ge</strong></p>
+
+    <div style="margin-top:32px;text-align:center">
+      <button class="btn btn-primary btn-md" onclick="showPage('home')">← მთავარ გვერდზე დაბრუნება / Back to Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- TERMS OF SERVICE PAGE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page" id="page-terms">
+  <div style="max-width:820px;margin:0 auto;padding:40px 20px;font-size:14px;line-height:1.8;color:var(--text2)">
+    <div style="margin-bottom:32px">
+      <h1 style="font-size:28px;font-weight:800;color:var(--text);margin-bottom:8px">მომხმარებლის შეთანხმება / Terms of Service / Пользовательское соглашение</h1>
+      <p style="color:var(--text3);font-size:13px">ბოლო განახლება / Last updated / Последнее обновление: May 2026</p>
+    </div>
+
+    <div style="background:var(--gold-light);border-left:4px solid var(--gold);padding:14px 18px;border-radius:0 8px 8px 0;margin-bottom:28px;font-size:13px;color:var(--gold)">
+      ⚠️ AutoBid Georgia-ს პლატფორმის გამოყენებით, თქვენ ეთანხმებით ამ პირობებს. გთხოვთ, ყურადღებით წაიკითხოთ. / By using AutoBid Georgia you agree to these terms. Please read carefully.
+    </div>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">1. პლატფორმა / The Platform</h2>
+    <p>AutoBid Georgia (<strong>autobid.com.ge</strong>) არის ონლაინ ავტომობილის აუქციონის პლატფორმა საქართველოში. ჩვენ ვემსახურებით როგორც შუამავლები გამყიდველებსა და მყიდველებს შორის. / AutoBid Georgia is an online car auction platform in Georgia. We act as an intermediary between sellers and buyers.</p>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">2. რეგისტრაცია / Registration</h2>
+    <ul style="margin:8px 0 8px 20px;display:flex;flex-direction:column;gap:4px">
+      <li>რეგისტრაცია უფასოა მყიდველებისთვის / Registration is free for buyers</li>
+      <li>თქვენ უნდა გქონდეთ მინიმუმ 18 წელი / You must be at least 18 years old</li>
+      <li>თქვენ პასუხისმგებელი ხართ ანგარიშის უსაფრთხოებაზე / You are responsible for your account security</li>
+      <li>ერთ პირზე მხოლოდ ერთი ანგარიში / One account per person only</li>
+      <li>ყალბი ინფორმაციით რეგისტრაცია კრძალავს ანგარიშს / False information will result in account suspension</li>
+    </ul>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">3. გამყიდველის პირობები / Seller Terms</h2>
+    <div style="background:var(--gray);border-radius:8px;padding:14px 18px;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+        <div><strong>განთავსების გადასახადი / Listing fee:</strong> ₾79.99</div>
+        <div><strong>გამყიდველის საკომისიო / Seller commission:</strong> ₾0 (0%)</div>
+        <div><strong>გამყიდველი იღებს / Seller receives:</strong> 100% of final bid</div>
+        <div><strong>დაბრუნება / Refund:</strong> სრული თუ უარყოფილია / Full if rejected</div>
+      </div>
+    </div>
+    <ul style="margin:8px 0 8px 20px;display:flex;flex-direction:column;gap:4px">
+      <li>გამყიდველი იხდის ₾79.99 განთავსების გადასახადს ადმინის დამტკიცების შემდეგ / Seller pays ₾79.99 listing fee after admin approval</li>
+      <li>ადმინი ამოწმებს ყველა განცხადებას 24 საათში / Admin reviews all listings within 24 hours</li>
+      <li>უარყოფის შემთხვევაში გადასახადი სრულად ბრუნდება / If rejected, fee is fully refunded</li>
+      <li>გამყიდველი იღებს საბოლოო ბიდის 100%-ს / Seller receives 100% of the final bid</li>
+      <li>ფოტოები უნდა იყოს ნამდვილი და მიმდინარე / Photos must be real and current</li>
+      <li>VIN ნომერი უნდა ემთხვეოდეს მანქანას / VIN must match the actual vehicle</li>
+      <li>ყალბი განცხადება იწვევს ანგარიშის დახურვას / False listings result in account closure</li>
+      <li>მინიმუმ 5 ფოტო სავალდებულოა / Minimum 5 photos required</li>
+    </ul>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">4. მყიდველის პირობები / Buyer Terms</h2>
+    <div style="background:var(--gray);border-radius:8px;padding:14px 18px;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+        <div><strong>რეგისტრაცია / Registration:</strong> უფასო / Free</div>
+        <div><strong>მყიდველის საკომისიო / Buyer commission:</strong> 2% of winning bid</div>
+      </div>
+    </div>
+    <ul style="margin:8px 0 8px 20px;display:flex;flex-direction:column;gap:4px">
+      <li>ბიდი სავალდებულოა — მისი გაუქმება შეუძლებელია / Bids are binding and cannot be retracted</li>
+      <li>ბიდის თანხა არის ნაბიჯი, არა ახალი ფასი / Bid amount is an increment, not the new total price</li>
+      <li>მოგებული მყიდველი იხდის 2% საკომისიოს AutoBid Georgia-სთვის / Winning buyer pays 2% commission to AutoBid Georgia</li>
+      <li>მოგებული მყიდველი ვალდებულია გარიგება დაასრულოს / Winning buyer is obligated to complete the purchase</li>
+      <li>ბიდის ნაბიჯი განისაზღვრება გამყიდველის მიერ / Bid increment is set by the seller</li>
+      <li>ბოლო 5 წუთში ბიდი ახანგრძლივებს აუქციონს / Bids in the last 5 minutes may extend the auction</li>
+    </ul>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">5. აუქციონის წესები / Auction Rules</h2>
+    <ul style="margin:8px 0 8px 20px;display:flex;flex-direction:column;gap:4px">
+      <li>აუქციონი გრძელდება 24–72 საათი / Auctions run for 24–72 hours</li>
+      <li>ყველა ფასი მითითებულია ქართულ ლარში (₾) / All prices are in Georgian Lari (₾)</li>
+      <li>AutoBid Georgia-ს შეუძლია გააუქმოს ნებისმიერი აუქციონი დარღვევის შემთხვევაში / AutoBid Georgia may cancel any auction in case of violations</li>
+      <li>მანქანების ნახვა (viewing) შესაძლებელია რეგისტრაციის გარეშე / Browsing is available without registration</li>
+      <li>ბიდისთვის სავალდებულოა დარეგისტრირება / Bidding requires registration</li>
+    </ul>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">6. აკრძალული მოქმედებები / Prohibited Actions</h2>
+    <ul style="margin:8px 0 8px 20px;display:flex;flex-direction:column;gap:4px">
+      <li>ყალბი ბიდები (shill bidding) / Fake bids (shill bidding)</li>
+      <li>სხვა მომხმარებლების პერსონალური ინფორმაციის გამოყენება / Using another user's personal information</li>
+      <li>ერთზე მეტი ანგარიში / Multiple accounts</li>
+      <li>API-ის ბოტებით გამოყენება / Using bots to access the API</li>
+      <li>ყალბი ან დაზიანებული მანქანების განთავსება არასწორი ინფორმაციით / Listing false or misrepresented vehicles</li>
+      <li>პლატფორმის უსაფრთხოების გვერდის ავლის მცდელობა / Attempting to bypass platform security</li>
+    </ul>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">7. პასუხისმგებლობის შეზღუდვა / Limitation of Liability</h2>
+    <p>AutoBid Georgia მოქმედებს როგორც შუამავალი. ჩვენ არ ვართ პასუხისმგებელი: / AutoBid Georgia acts as an intermediary. We are not liable for:</p>
+    <ul style="margin:8px 0 8px 20px;display:flex;flex-direction:column;gap:4px">
+      <li>მანქანის ტექნიკური მდგომარეობა / The mechanical condition of vehicles</li>
+      <li>გამყიდველსა და მყიდველს შორის დავები / Disputes between sellers and buyers</li>
+      <li>გადახდის შეფერხებები / Payment delays</li>
+      <li>ინტერნეტ კავშირის პრობლემები / Internet connectivity issues</li>
+    </ul>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">8. იურისდიქცია / Jurisdiction</h2>
+    <p>ეს შეთანხმება რეგულირდება საქართველოს კანონმდებლობით. ნებისმიერი დავა განიხილება საქართველოს სასამართლოებში. / This agreement is governed by Georgian law. Any disputes will be resolved in Georgian courts.</p>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">9. ცვლილებები / Changes</h2>
+    <p>AutoBid Georgia-ს უფლება აქვს შეცვალოს ეს პირობები ნებისმიერ დროს. ცვლილებების შემთხვევაში მომხმარებლებს ეცნობებათ SMS-ის ან ელ-ფოსტის საშუალებით. / AutoBid Georgia may update these terms at any time. Users will be notified via SMS or email.</p>
+
+    <h2 style="font-size:16px;font-weight:700;color:var(--text);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)">10. კონტაქტი / Contact</h2>
+    <p>📧 <strong>info@autobid.com.ge</strong><br>
+    🌐 <strong>autobid.com.ge</strong><br>
+    📍 თბილისი, საქართველო / Tbilisi, Georgia</p>
+
+    <div style="margin-top:32px;text-align:center">
+      <button class="btn btn-primary btn-md" onclick="showPage('home')">← მთავარ გვერდზე დაბრუნება / Back to Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- FOOTER -->
+<!-- ═══════════════════════════════════════════ -->
+<footer style="background:var(--blue2);color:rgba(255,255,255,0.7);padding:32px 20px 20px;margin-top:40px">
+  <div style="max-width:1200px;margin:0 auto">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:28px;margin-bottom:28px">
+      <div>
+        <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:6px">AutoBid<span style="color:var(--red)">.ge</span></div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:12px">საქართველოს #1 ონლაინ ავტო აუქციონი</div>
+        <div style="font-size:12px;line-height:1.8">
+          📍 თბილისი, საქართველო<br>
+          📧 info@autobid.com.ge<br>
+          🌐 autobid.com.ge
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">პლატფორმა / Platform</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
+          <a onclick="showPage('home')" style="color:rgba(255,255,255,0.7);cursor:pointer;hover:color:#fff">🏠 აუქციონები / Auctions</a>
+          <a onclick="showPage('howSell')" style="color:rgba(255,255,255,0.7);cursor:pointer">📋 როგორ გავყიდო / How to Sell</a>
+          <a onclick="openAuth('register')" style="color:rgba(255,255,255,0.7);cursor:pointer">✅ რეგისტრაცია / Register</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">სამართლებრივი / Legal</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
+          <a onclick="showPage('terms')" style="color:rgba(255,255,255,0.7);cursor:pointer">📄 მომხმარებლის შეთანხმება / Terms of Service</a>
+          <a onclick="showPage('privacy')" style="color:rgba(255,255,255,0.7);cursor:pointer">🔒 კონფიდენციალურობა / Privacy Policy</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">ტარიფები / Pricing</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+          <div>📋 განთავსება: <strong style="color:#f9c74f">₾79.99</strong></div>
+          <div>🏆 მყიდველის საკომისიო: <strong style="color:#f9c74f">2%</strong></div>
+          <div>✅ გამყიდველი იღებს: <strong style="color:#f9c74f">100%</strong></div>
+          <div>🔍 ყურება: <strong style="color:#f9c74f">უფასო</strong></div>
+        </div>
+      </div>
+    </div>
+    <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font-size:11px">
+      <div>© 2026 AutoBid Georgia. ყველა უფლება დაცულია / All rights reserved.</div>
+      <div style="display:flex;gap:16px">
+        <a onclick="showPage('privacy')" style="color:rgba(255,255,255,0.5);cursor:pointer">Privacy Policy</a>
+        <a onclick="showPage('terms')" style="color:rgba(255,255,255,0.5);cursor:pointer">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>
